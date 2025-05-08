@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edit Log | Frontend Hiring Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50">
+    <div data-include="/components/navbar.html"></div>
+
+    <div class="p-4 py-12 lg:px-28 min-h-screen flex flex-col">
+      <div class="mb-6">
+        <div>
+          <a href="/pages/log/list.html" class="text-blue-900 hover:text-blue-800 mr-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </a>
+        </div>
+        <p class="text-center text-sm md:text-base text-gray-600 mt-1">
+          Ubah data log yang sudah ada dengan form di bawah ini.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 md:p-10 lg:px-20 lg:py-16">
+        <form id="editLogForm">
+          <!-- Hidden input for logId dan mataKuliahId -->
+          <input type="hidden" id="mataKuliahId" name="mataKuliahId" />
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Judul -->
+            <div class="mb-4">
+              <label for="judul" class="block mb-2 text-sm font-medium text-gray-700"
+                >Judul Log <span class="text-red-500">*</span></label
+              >
+              <input
+                type="text"
+                id="judul"
+                name="judul"
+                class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+              />
+              <div class="mt-1 text-sm text-red-600 hidden" id="judul-error"></div>
+            </div>
+
+            <!-- Kategori -->
+            <div class="mb-4">
+              <label for="kategori" class="block mb-2 text-sm font-medium text-gray-700"
+                >Kategori <span class="text-red-500">*</span></label
+              >
+              <select
+                id="kategori"
+                name="kategori"
+                class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+              >
+                <option value="" disabled>Pilih Kategori</option>
+                <option value="ASISTENSI">Asistensi</option>
+                <option value="MENGOREKSI">Mengoreksi</option>
+                <option value="MENGAWAS">Mengawas</option>
+                <option value="OTHER">Lain-lain</option>
+              </select>
+              <div class="mt-1 text-sm text-red-600 hidden" id="kategori-error"></div>
+            </div>
+          </div>
+
+          <!-- Tanggal -->
+          <div class="mb-4">
+            <label for="tanggalLog" class="block mb-2 text-sm font-medium text-gray-700"
+              >Tanggal Log <span class="text-red-500">*</span></label
+            >
+            <input
+              type="date"
+              id="tanggalLog"
+              name="tanggalLog"
+              class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              required
+            />
+            <div class="mt-1 text-sm text-red-600 hidden" id="tanggalLog-error"></div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Waktu Mulai -->
+            <div>
+              <label for="waktuMulai" class="block mb-2 text-sm font-medium text-gray-700"
+                >Waktu Mulai <span class="text-red-500">*</span></label
+              >
+              <input
+                type="time"
+                id="waktuMulai"
+                name="waktuMulai"
+                class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+              />
+              <div class="mt-1 text-sm text-red-600 hidden" id="waktuMulai-error"></div>
+            </div>
+
+            <!-- Waktu Selesai -->
+            <div>
+              <label for="waktuSelesai" class="block mb-2 text-sm font-medium text-gray-700"
+                >Waktu Selesai <span class="text-red-500">*</span></label
+              >
+              <input
+                type="time"
+                id="waktuSelesai"
+                name="waktuSelesai"
+                class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+              />
+              <div class="mt-1 text-sm text-red-600 hidden" id="waktuSelesai-error"></div>
+            </div>
+          </div>
+
+          <!-- Keterangan -->
+          <div class="mb-4">
+            <label for="keterangan" class="block mb-2 text-sm font-medium text-gray-700"
+              >Keterangan</label
+            >
+            <textarea
+              id="keterangan"
+              name="keterangan"
+              rows="3"
+              class="resize-none bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="Masukkan keterangan tambahan (opsional)"
+            ></textarea>
+          </div>
+
+          <!-- Pesan -->
+          <div class="mb-6">
+            <label for="pesan" class="block mb-2 text-sm font-medium text-gray-700">Pesan</label>
+            <textarea
+              id="pesan"
+              name="pesan"
+              rows="3"
+              class="resize-none bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="Masukkan pesan tambahan (opsional)"
+            ></textarea>
+          </div>
+
+          <!-- Button -->
+          <div class="flex justify-end space-x-2">
+            <a
+              href="/pages/log/list.html"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >Batal</a
+            >
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div data-include="/components/footer.html"></div>
+
+    <script src="/assets/js/include.js"></script>
+    <script src="/assets/js/log/edit.js"></script>
+    <script src="/assets/js/toast.js"></script>
+  </body>
+</html>
