@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frontend Hiring Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50">
+    <!-- include navbar -->
+    <div data-include="/components/navbar.html"></div>
+
+    <div class="p-4 py-12 lg:px-28 min-h-screen flex flex-col">
+      <div class="flex justify-between items-center mb-6 space-x-4">
+        <h1 class="text-2xl font-bold text-gray-900">Daftar Log</h1>
+
+        <a
+          id="create-log-link"
+          class="px-3 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span class="pl-2"> Tambah Log </span>
+        </a>
+      </div>
+
+      <!-- Filter & Search -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="kategori" class="block mb-1 text-sm font-medium text-gray-700"
+              >Kategori</label
+            >
+
+            <select
+              id="kategori"
+              class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            >
+              <option value="">Semua Kategori</option>
+              <option value="ASISTENSI">Asistensi</option>
+              <option value="MENGOREKSI">Mengoreksi</option>
+              <option value="MENGAWAS">Mengawas</option>
+              <option value="OTHER">Lain-lain</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="status" class="block mb-1 text-sm font-medium text-gray-700">Status</label>
+
+            <select
+              id="status"
+              class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            >
+              <option value="">Semua Status</option>
+              <option value="DIPROSES">Diproses</option>
+              <option value="DITERIMA">Diterima</option>
+              <option value="DITOLAK">Ditolak</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="search" class="block mb-1 text-sm font-medium text-gray-700">Cari</label>
+
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                  class="w-4 h-4 text-gray-500"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+              </div>
+
+              <input
+                type="text"
+                id="search"
+                class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
+                placeholder="Cari judul log..."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs Table -->
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3">No</th>
+              <th scope="col" class="px-6 py-3">Tanggal</th>
+              <th scope="col" class="px-6 py-3">Jam</th>
+              <th scope="col" class="px-6 py-3">Kategori</th>
+              <th scope="col" class="px-6 py-3">Judul</th>
+              <th scope="col" class="px-6 py-3">Status</th>
+              <th scope="col" class="px-6 py-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody id="logsTableBody">
+            <!-- dr script -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div
+      id="deleteModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="relative bg-white rounded-2xl shadow-xl p-6 w-96 max-w-md animate-bounce-in"
+        style="animation: popupIn 0.3s ease-out"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold text-gray-900">Konfirmasi Hapus</h3>
+        </div>
+
+        <button
+          onclick="closeDeleteModal()"
+          class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-xl"
+        >
+          &times;
+        </button>
+
+        <div class="py-4 text-center">
+          <svg
+            class="mx-auto mb-4 w-12 h-12 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+
+          <h3 class="mb-5 font-normal text-gray-700">
+            Apakah Anda yakin ingin menghapus log dengan judul
+            <span id="deleteItemName" class="mb-5 font-bold"></span>
+            ini?
+          </h3>
+
+          <input type="hidden" id="deleteItemId" />
+          <div class="flex justify-center">
+            <button
+              onclick="deleteLog()"
+              class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
+            >
+              Ya, Hapus
+            </button>
+            <button
+              onclick="closeDeleteModal()"
+              class="text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div
+      id="logDetailOverlay"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-2xl p-6 w-96 shadow-xl relative animate-bounce-in"
+        style="animation: popupIn 0.3s ease-out"
+      >
+        <button
+          onclick="closeLogDetail()"
+          class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-xl"
+        >
+          &times;
+        </button>
+
+        <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <span>📋</span> Detail Log
+        </h2>
+
+        <div class="space-y-2 text-sm">
+          <p><span class="font-medium">Judul:</span> <span id="detailJudul"></span></p>
+          <p><span class="font-medium">Kategori:</span> <span id="detailKategori"></span></p>
+          <p><span class="font-medium">Tanggal:</span> <span id="detailTanggal"></span></p>
+          <p><span class="font-medium">Waktu:</span> <span id="detailWaktu"></span></p>
+          <p><span class="font-medium">Status:</span> <span id="detailStatus"></span></p>
+          <p><span class="font-medium">Keterangan:</span> <span id="detailKeterangan"></span></p>
+          <p><span class="font-medium">Pesan:</span> <span id="detailPesan"></span></p>
+        </div>
+
+        <div class="mt-6 text-xs text-gray-400 text-center italic">
+          "dua tiga kucing berlari...."
+        </div>
+      </div>
+    </div>
+
+    <!-- include footer -->
+    <div data-include="/components/footer.html"></div>
+
+    <!-- include biar ala ala template django -->
+    <script src="/assets/js/include.js"></script>
+    <script src="/assets/js/log/list.js"></script>
+    <script src="/assets/js/toast.js"></script>
+  </body>
+
+  <style>
+    @keyframes popupIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
+</html>
