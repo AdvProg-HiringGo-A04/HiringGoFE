@@ -24,13 +24,15 @@
         </tbody>
     </table>
 </div>
-<script>
+<script type="module">
+    import CONFIG from '../../js/config.js'
+
     var table = document.getElementById('table')
     var token = localStorage.getItem('token')
 
     async function fetchData() {
         try {
-            var response = await fetch('http://localhost:8080/courses', {
+            var response = await fetch(CONFIG.API_URL + '/courses', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -53,10 +55,15 @@
                     <td>-</td>
                     <td>
                         <a class="btn btn-warning btn-sm" href="update.html?id=${mataKuliah.kodeMataKuliah}">Edit</a>
-                        <button class="btn btn-danger btn-sm" onclick="handleDelete('${mataKuliah.kodeMataKuliah}')">Delete</button>
+                        <button class="btn btn-danger btn-sm" id="${mataKuliah.kodeMataKuliah}">Delete</button>
                     </td>
                 `
                 table.appendChild(row);
+
+                var deleteButton = document.getElementById(mataKuliah.kodeMataKuliah)
+                deleteButton.addEventListener('click', function () {
+                    handleDelete(mataKuliah.kodeMataKuliah)
+                })
             })
         } catch (error) {
             console.error('Error:', error)
@@ -66,7 +73,7 @@
     fetchData();
 
     async function handleDelete(kode) {
-        var response = await fetch('http://localhost:8080/courses/' + kode, {
+        var response = await fetch(CONFIG.API_URL + '/courses/' + kode, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`

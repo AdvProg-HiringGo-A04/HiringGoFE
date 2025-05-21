@@ -25,7 +25,9 @@
         <a href="index.html" class="btn btn-secondary">Kembali</a>
     </form>
 </div>
-<script>
+<script type="module">
+    import CONFIG from '../../js/config.js'
+
     var token = localStorage.getItem('token')
 
     document.getElementById('createForm').addEventListener('submit', async function (e) {
@@ -39,7 +41,7 @@
         }
 
         try {
-            var response = await fetch(`http://localhost:8080/courses`, {
+            var response = await fetch(CONFIG.API_URL + '/courses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

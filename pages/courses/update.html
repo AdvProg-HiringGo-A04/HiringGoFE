@@ -25,14 +25,16 @@
         <a href="index.html" class="btn btn-secondary">Kembali</a>
     </form>
 </div>
-<script>
+<script type="module">
+    import CONFIG from '../../js/config.js'
+
     var urlParams = new URLSearchParams(window.location.search)
     var kode = urlParams.get('id')
     var token = localStorage.getItem('token')
 
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            var response = await fetch(`http://localhost:8080/courses/${kode}`, {
+            var response = await fetch(CONFIG.API_URL + '/courses/' + kode, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -66,7 +68,7 @@
         }
 
         try {
-            var response = await fetch(`http://localhost:8080/courses/${kode}`, {
+            var response = await fetch(CONFIG.API_URL + '/courses/' + kode, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
