@@ -39,38 +39,60 @@
                 }
             })
             if (!response.ok) {
-                var errorData = await response.json();
-                throw new Error(errorData.errors);
+                var errorData = await response.json()
+                throw new Error(errorData.errors)
             }
             var data = await response.json()
-            table.innerHTML = '';
+            table.innerHTML = ''
 
-            data.data.forEach(mataKuliah => {
-                var row = document.createElement('tr');
+            for (var mataKuliah of data.data) {
+                var row = document.createElement('tr')
 
                 row.innerHTML = `
                     <td>${mataKuliah.kodeMataKuliah}</td>
                     <td>${mataKuliah.namaMataKuliah}</td>
                     <td>${mataKuliah.deskripsiMataKuliah}</td>
-                    <td>-</td>
+                    <td id="dosen-${mataKuliah.kodeMataKuliah}"></td>
                     <td>
                         <a class="btn btn-warning btn-sm" href="update.html?id=${mataKuliah.kodeMataKuliah}">Edit</a>
                         <button class="btn btn-danger btn-sm" id="${mataKuliah.kodeMataKuliah}">Delete</button>
                     </td>
                 `
-                table.appendChild(row);
+                table.appendChild(row)
+
+                var dosenTd = document.getElementById('dosen-' + mataKuliah.kodeMataKuliah)
+
+                var listDosen = []
+
+                for (var dosen of mataKuliah.dosenPengampu) {
+                    var responseDosen = await fetch(CONFIG.API_URL + '/dosen/' + dosen, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+
+                    if (!responseDosen.ok) {
+                        var errorData = await response.json()
+                        throw new Error(errorData.errors)
+                    }
+                    var dataDosen = await responseDosen.json()
+                    listDosen.push(dataDosen.namaLengkap)
+                }
+
+                dosenTd.innerHTML = listDosen.join(', ')
 
                 var deleteButton = document.getElementById(mataKuliah.kodeMataKuliah)
                 deleteButton.addEventListener('click', function () {
                     handleDelete(mataKuliah.kodeMataKuliah)
                 })
-            })
+            }
         } catch (error) {
             console.error('Error:', error)
         }
     }
 
-    fetchData();
+    fetchData()
 
     async function handleDelete(kode) {
         var response = await fetch(CONFIG.API_URL + '/courses/' + kode, {
@@ -80,11 +102,11 @@
             }
         })
         if (!response.ok) {
-            var errorData = await response.json();
-            throw new Error(errorData.errors);
+            var errorData = await response.json()
+            throw new Error(errorData.errors)
         }
 
-        await fetchData();
+        await fetchData()
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>

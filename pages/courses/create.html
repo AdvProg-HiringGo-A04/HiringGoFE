@@ -21,6 +21,7 @@
             <label for="deskripsi">Deskripsi</label>
             <textarea class="form-control" id="deskripsi" name="deskripsi" rows="4" required></textarea>
         </div>
+        <div class="form-group" id="checkbox-container"></div>
         <button type="submit" class="btn btn-primary">Simpan</button>
         <a href="index.html" class="btn btn-secondary">Kembali</a>
     </form>
@@ -30,6 +31,59 @@
 
     var token = localStorage.getItem('token')
 
+    var container = document.getElementById('checkbox-container')
+
+    var selectedDosen = []
+
+    async function fetchDosen() {
+        var response = await fetch(CONFIG.API_URL + '/dosen', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+
+        if (!response.ok) {
+            var errorData = await response.json()
+            throw new Error(errorData.errors)
+        }
+
+        var data = await response.json()
+
+        data.forEach(dosen => {
+            var checkbox = document.createElement('input')
+            checkbox.type = 'checkbox'
+            checkbox.name = 'dosen'
+            checkbox.value = dosen.id
+            checkbox.id = dosen.id
+
+            var label = document.createElement('label')
+            label.htmlFor = checkbox.id
+            label.innerText = dosen.namaLengkap
+
+            var div = document.createElement('div')
+            div.appendChild(checkbox)
+            div.appendChild(label)
+
+            container.appendChild(div)
+
+            checkbox.addEventListener('change', function() {
+                if (checkbox.checked) {
+                    if (!selectedDosen.includes(dosen.id)) {
+                        selectedDosen.push(dosen.id)
+                    }
+                } else {
+                    var index = selectedDosen.indexOf(dosen.id)
+                    if (index > -1) {
+                        selectedDosen.splice(index, 1)
+                    }
+                }
+            })
+        })
+    }
+
+    fetchDosen()
+
     document.getElementById('createForm').addEventListener('submit', async function (e) {
         e.preventDefault()
 
@@ -37,7 +91,7 @@
             kodeMataKuliah: document.getElementById('kode').value,
             namaMataKuliah: document.getElementById('nama').value,
             deskripsiMataKuliah: document.getElementById('deskripsi').value,
-            dosenPengampu: []
+            dosenPengampu: selectedDosen
         }
 
         try {
