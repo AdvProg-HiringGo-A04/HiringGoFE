@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/auth';
+import CONFIG from "./config.js";
 
 document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('.tab');
@@ -105,9 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function login(email, password) {
-    console.log("Mengirim request login ke:", `${API_BASE_URL}/login`);
-    
-    fetch(`${API_BASE_URL}/login`, {
+    console.log("Mengirim request login ke:", `${CONFIG.API_URL}/auth/login`);
+
+    fetch(`${CONFIG.API_URL}/auth/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -146,10 +146,8 @@ function login(email, password) {
             document.getElementById('loginSuccess').style.display = 'block';
             
             localStorage.setItem('token', token);
-            
-            setTimeout(() => {
-                window.location.href = '/dashboard.html';
-            }, 1000);
+
+            window.location.href = 'dashboard.html';
         }
     })
     .catch(error => {
@@ -164,7 +162,7 @@ function login(email, password) {
 }
 
 function register(name, npm, email, password, confirmPassword) {
-    console.log("Mengirim request registrasi ke:", `${API_BASE_URL}/register`);
+    console.log("Mengirim request registrasi ke:", `${CONFIG.API_URL}/auth/register`);
     console.log("Data yang dikirim:", { 
         namaLengkap: name, 
         npm: npm, 
@@ -173,7 +171,7 @@ function register(name, npm, email, password, confirmPassword) {
         confirmPassword: confirmPassword
     });
 
-    fetch(`${API_BASE_URL}/register`, {
+    fetch(`${CONFIG.API_URL}/auth/register`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -255,6 +253,6 @@ function isValidEmail(email) {
 function checkAuth() {
     const token = localStorage.getItem('token');
     if (token) {
-        window.location.href = '/dashboard.html';
+        window.location.href = 'dashboard.html';
     }
 }

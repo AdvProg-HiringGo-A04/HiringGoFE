@@ -115,36 +115,40 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
+        import CONFIG from "./js/config.js";
+
         document.addEventListener('DOMContentLoaded', function() {
             // Cek apakah user sudah login
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = 'index.html';
             }
-            
-            // Logout button event listener
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                // Hapus token dari localStorage
-                localStorage.removeItem('token');
-                
-                // Coba panggil API logout jika tersedia
-                const backendUrl = localStorage.getItem('backendUrl') || 'http://localhost:8080';
-                
-                fetch(`${backendUrl}/auth/logout`, {
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            // Hapus token dari localStorage
+            const token = localStorage.getItem('token');
+
+            try {
+                var response = await fetch(`${CONFIG.API_URL}/auth/logout`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 })
-                .catch(error => {
-                    console.warn('Logout API call failed, but proceeding with local logout:', error);
-                })
-                .finally(() => {
-                    // Redirect ke halaman login
-                    window.location.href = 'index.html';
-                });
-            });
+
+                if (!response.ok) {
+                    var errorData = await response.json()
+                    throw new Error(errorData.errors)
+                }
+
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.warn('Logout API call failed, but proceeding with local logout:', error);
+
+            }
         });
     </script>
 </body>
