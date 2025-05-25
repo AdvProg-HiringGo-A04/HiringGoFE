@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
   fetch(`http://localhost:8080/api/log/${logId}`, {
     method: "GET",
     headers: {
-      "X-Student-Id": "00000000-0000-0000-0000-000000000003", // TODO
+      "X-Student-Id": "0000-0000-0000-0000-000000000003", // TODO
     },
   })
     .then(async (response) => {
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "X-Student-Id": "00000000-0000-0000-0000-000000000003", // TODO
+          "X-Student-Id": "0000-0000-0000-0000-000000000003", // TODO
         },
         body: JSON.stringify(logData),
       })

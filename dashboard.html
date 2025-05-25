@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>HiringGo - Dashboard</title>
     <style>
         * {
@@ -12,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        body {
+        .body1 {
             background-color: #f5f5f5;
             padding: 20px;
         }
@@ -91,29 +92,38 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">HiringGo</div>
-            <button id="logoutBtn" class="btn danger">Logout</button>
-        </div>
-        
-        <div class="welcome-message">Selamat datang di HiringGo!</div>
-        
-        <div class="card">
-            <div class="card-title">Dashboard Mahasiswa</div>
-            <div class="card-content">
-                <p>Anda telah berhasil login ke sistem HiringGo. Ini adalah halaman dashboard sederhana yang menunjukkan bahwa autentikasi Anda berhasil.</p>
-                <p>Dengan menggunakan HiringGo, Anda dapat:</p>
-                <ul style="margin-left: 20px; margin-top: 10px;">
-                    <li>Melihat lowongan pekerjaan</li>
-                    <li>Melamar pekerjaan</li>
-                    <li>Mengikuti proses seleksi</li>
-                    <li>Mengelola profil Anda</li>
-                </ul>
+<body class="min-h-screen bg-[#f5f5f5]">
+    <div data-include="/components/navbar.html"></div>
+
+    <div class="body1 min-h-screen">
+        <div class="container">
+            <div class="header">
+                <div class="logo">HiringGo</div>
+                <button id="logoutBtn" class="btn danger">Logout</button>
+            </div>
+            
+            <div class="welcome-message">Selamat datang di HiringGo!</div>
+            
+            <div class="card">
+                <div class="card-title">Dashboard Mahasiswa</div>
+                <div class="card-content">
+                    <p>Anda telah berhasil login ke sistem HiringGo. Ini adalah halaman dashboard sederhana yang menunjukkan bahwa autentikasi Anda berhasil.</p>
+                    <p>Dengan menggunakan HiringGo, Anda dapat:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Melihat lowongan pekerjaan</li>
+                        <li>Melamar pekerjaan</li>
+                        <li>Mengikuti proses seleksi</li>
+                        <li>Mengelola profil Anda</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
+
+
+    <div data-include="/components/footer.html"></div>
+
+    <script src="/assets/js/include.js"></script>
     
     <script type="module">
         import CONFIG from "./js/config.js";

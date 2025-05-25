@@ -1,6 +1,6 @@
 let logs = [];
 let filteredLogs = [];
-let mataKuliahId = "CS123"; // TODO
+let mataKuliahId = "CS302"; // TODO
 let allLogData = [];
 
 const kategoriColors = {
@@ -18,7 +18,7 @@ const statusColors = {
 
 function fetchLogs() {
   // const urlParams = new URLSearchParams(window.location.search); // TODO
-  // mataKuliahId = urlParams.get("mataKuliahId") || "CS123"; // TODO
+  // mataKuliahId = urlParams.get("mataKuliahId") || "CS302"; // TODO
 
   // Show loading state
   document.getElementById("logsTableBody").innerHTML = `
@@ -27,14 +27,15 @@ function fetchLogs() {
     </tr>
   `;
 
+  console.log("Fetching logs for mataKuliahId:", mataKuliahId);
   const apiUrl = `http://localhost:8080/api/log/matakuliah/${mataKuliahId}`;
-  console.log("Fetching from:", apiUrl);
+  console.log("Fetching from halo:", apiUrl);
 
   fetch(apiUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": "00000000-0000-0000-0000-000000000003", // TODO
+      "X-Student-ID": "0000-0000-0000-0000-000000000003", // TODO
     },
   })
     .then(async (response) => {
@@ -265,7 +266,7 @@ function deleteLog() {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": "00000000-0000-0000-0000-000000000003", // TODO
+      "X-Student-ID": " 0000-0000-0000-0000-000000000003", // TODO
     },
   })
     .then(async (response) => {
@@ -325,7 +326,7 @@ function viewLogDetail(id) {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": "00000000-0000-0000-0000-000000000003", // TODO
+      "X-Student-ID": " 0000-0000-0000-0000-000000000003", // TODO
     },
   })
     .then((response) => response.json())
