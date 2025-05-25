@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
   <title>Honor Dashboard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    html, body { height: 100%; overflow: hidden; }
     #content { display: none; overflow-y: auto; height: 100%; }
     #unauth { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background-color: #f5f5f5; z-index: 9999; }
     .unauth-msg { font-size: 1.5rem; color: #e74c3c; }
@@ -35,63 +35,72 @@
     @media (max-width: 768px) { .form-container { flex-direction: column; } }
   </style>
 </head>
-<body>
-  <div id="unauth">
-    <h2 class="unauth-msg">Akses ditolak. Hanya mahasiswa yang dapat mengakses halaman ini.</h2>
-  </div>
-  <div id="content">
-    <div class="container">
-      <div class="header">
-        <div class="logo">Honor Dashboard</div>
-        <div class="nav-buttons">
-          <button id="logoutBtn" class="btn">Logout</button>
-        </div>
-      </div>
-      <div class="main-content">
-        <div class="card">
-          <h2 class="card-title">Cari Honor</h2>
-          <div id="error" class="alert"></div>
-          <div class="form-container">
-            <div class="form-group">
-              <label for="year">Tahun</label>
-              <input type="number" id="year" value="2024" min="2000" max="2100">
-            </div>
-            <div class="form-group">
-              <label for="month">Bulan</label>
-              <select id="month">
-                <option value="1">Januari</option>
-                <option value="2">Februari</option>
-                <option value="3">Maret</option>
-                <option value="4">April</option>
-                <option value="5">Mei</option>
-                <option value="6">Juni</option>
-                <option value="7">Juli</option>
-                <option value="8">Agustus</option>
-                <option value="9">September</option>
-                <option value="10">Oktober</option>
-                <option value="11">November</option>
-                <option value="12">Desember</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button id="fetchBtn" class="btn primary">Tampilkan Honor</button>
+<body class="min-h-screen">
+  <div data-include="/components/navbar.html"></div>
+
+  <div class="body1 py-24">
+    <div id="unauth">
+      <h2 class="unauth-msg">Akses ditolak. Hanya mahasiswa yang dapat mengakses halaman ini.</h2>
+    </div>
+    <div id="content">
+      <div class="container">
+        <div class="header">
+          <div class="logo">Honor Dashboard</div>
+          <div class="nav-buttons">
+            <button id="logoutBtn" class="btn">Logout</button>
           </div>
         </div>
-        <div class="card" style="margin-top: 20px;">
-          <h2 class="card-title">Hasil Honor</h2>
-          <div class="table-container">
-            <table id="honorTable">
-              <thead>
-                <tr><th>Tanggal</th><th>Mata Kuliah</th><th>Total Jam</th><th>Honor/Jam</th><th>Total Pembayaran</th><th>Status</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+        <div class="main-content">
+          <div class="card">
+            <h2 class="card-title">Cari Honor</h2>
+            <div id="error" class="alert"></div>
+            <div class="form-container">
+              <div class="form-group">
+                <label for="year">Tahun</label>
+                <input type="number" id="year" value="2024" min="2000" max="2100">
+              </div>
+              <div class="form-group">
+                <label for="month">Bulan</label>
+                <select id="month">
+                  <option value="1">Januari</option>
+                  <option value="2">Februari</option>
+                  <option value="3">Maret</option>
+                  <option value="4">April</option>
+                  <option value="5">Mei</option>
+                  <option value="6">Juni</option>
+                  <option value="7">Juli</option>
+                  <option value="8">Agustus</option>
+                  <option value="9">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button id="fetchBtn" class="btn primary">Tampilkan Honor</button>
+            </div>
+          </div>
+          <div class="card" style="margin-top: 20px;">
+            <h2 class="card-title">Hasil Honor</h2>
+            <div class="table-container">
+              <table id="honorTable">
+                <thead>
+                  <tr><th>Tanggal</th><th>Mata Kuliah</th><th>Total Jam</th><th>Honor/Jam</th><th>Total Pembayaran</th><th>Status</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
+
+  <div data-include="/components/footer.html"></div>
+
+  <script src="/assets/js/include.js"></script>
   <script src="../../js/honor-dashboard.js"></script>
 </body>
 </html>

@@ -1,11 +1,13 @@
+
 document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search); // TODO
-  const logId = urlParams.get("logId"); // TODO
-  // const studentId = localStorage.getItem("studentId"); //TODO
+  const token = localStorage.getItem('token');
+  const urlParams = new URLSearchParams(window.location.search);
+  const logId = urlParams.get("logId");
+  const lowonganId = urlParams.get("lowonganId") || urlParams.get("idlowongan") || localStorage.getItem('selectedLowonganId');
 
   if (!logId) {
     alert("Log ID tidak ditemukan");
-    window.location.href = "/pages/log/list.html";
+    window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
     return;
   }
 
@@ -14,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
   fetch(`http://localhost:8080/api/log/${logId}`, {
     method: "GET",
     headers: {
-      "X-Student-Id": "00000000-0000-0000-0000-000000000003", // TODO
+      "Authorization": `Bearer ${token}`,
     },
   })
     .then(async (response) => {
@@ -116,13 +118,14 @@ document.addEventListener("DOMContentLoaded", function () {
         keterangan: formData.get("keterangan") || null,
         pesan: formData.get("pesan") || null,
         mataKuliahId: formData.get("mataKuliahId"),
+        lowonganId: lowonganId || localStorage.getItem('selectedLowonganId'),
       };
 
       fetch(`http://localhost:8080/api/log/${logId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "X-Student-Id": "00000000-0000-0000-0000-000000000003", // TODO
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(logData),
       })

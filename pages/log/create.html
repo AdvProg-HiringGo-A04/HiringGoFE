@@ -38,7 +38,8 @@
       <div class="bg-white rounded-lg shadow p-6 md:p-10 lg:px-20 lg:py-16">
         <form id="createLogForm">
           <!-- Hidden input for mataKuliahId -->
-          <input type="hidden" id="mataKuliahId" name="mataKuliahId" value="CS123" />
+          <!-- <input type="hidden" id="mataKuliahId" name="mataKuliahId" value="CS302" /> -->
+          <input type="hidden" id="lowonganId" name="lowonganId" value="" />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <!-- Judul Log -->
@@ -150,13 +151,28 @@
             ></textarea>
           </div>
 
+          <!-- Mata Kuliah Id -->
+          <div class="mb-6">
+            <label for="mataKuliahId" class="block mb-2 text-sm font-medium text-gray-700">Kode Mata Kuliah <span class="text-red-500">*</span></label>
+            <input
+              id="mataKuliahId"
+              name="mataKuliahId"
+              class="resize-none bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="Masukkan id mata kuliah"
+              required
+            />
+            <div class="mt-1 text-sm text-red-600 hidden" id="judul-error"></div>
+          </div>
+
           <!-- Button -->
           <div class="flex justify-end space-x-2">
-            <a
-              href="/pages/log/list.html"
+            <button
+              type="button"
+              onclick="navigateBack()"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >Batal</a
             >
+              Batal
+            </button>
             <button
               type="submit"
               class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800"

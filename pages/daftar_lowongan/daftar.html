@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daftar Lowongan Asisten</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <!-- Include Navbar -->
+  <div data-include="/components/navbar.html"></div>
+
+  <div class="p-4 py-12 lg:px-28 min-h-screen flex flex-col">
+    <div class="mb-6">
+      <p class="text-center text-sm md:text-base text-gray-600 mt-1">
+        Isi form berikut untuk mendaftar lowongan asisten.
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 md:p-10 lg:px-20 lg:py-16">
+      <form id="daftarLowonganForm">
+        <!-- Hidden input for lowonganId -->
+        <input type="hidden" id="lowonganId" name="lowonganId" value="lowongan-id" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- SKS -->
+          <div class="mb-4">
+            <label for="sks" class="block mb-2 text-sm font-medium text-gray-700">
+              SKS <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="sks"
+              name="sks"
+              class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="Masukkan jumlah SKS"
+              required
+            />
+            <div class="mt-1 text-sm text-red-600 hidden" id="sks-error"></div>
+          </div>
+
+          <!-- IPK -->
+          <div class="mb-4">
+            <label for="ipk" class="block mb-2 text-sm font-medium text-gray-700">
+              IPK <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="ipk"
+              name="ipk"
+              step="0.01"
+              min="0"
+              max="4"
+              class="bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="Masukkan IPK"
+              required
+            />
+            <div class="mt-1 text-sm text-red-600 hidden" id="ipk-error"></div>
+          </div>
+        </div>
+
+        <!-- Button -->
+        <div class="flex justify-end space-x-2">
+          <a href="/dashboard.html" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+            Batal
+          </a>
+          <button type="submit" class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800">
+            Daftar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Include Footer -->
+  <div data-include="/components/footer.html"></div>
+
+  <!-- Include JavaScript -->
+  <script src="/assets/js/include.js"></script>
+  <script src="/assets/js/toast.js"></script>
+  <script src="/assets/js/daftar_lowongan/daftar.js"></script>
+</body>
+</html>
