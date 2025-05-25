@@ -1,7 +1,12 @@
 let logs = [];
 let filteredLogs = [];
-let mataKuliahId = "CS302"; // TODO
+// let mataKuliahId = null;
 let allLogData = [];
+
+const token = localStorage.getItem('token');
+if (!token) {
+  window.location.href = '/index.html';
+}
 
 const kategoriColors = {
   ASISTENSI: "bg-blue-100 text-blue-800",
@@ -16,10 +21,14 @@ const statusColors = {
   DITOLAK: "bg-red-100 text-red-800",
 };
 
-function fetchLogs() {
-  // const urlParams = new URLSearchParams(window.location.search); // TODO
-  // mataKuliahId = urlParams.get("mataKuliahId") || "CS302"; // TODO
+const urlParams = new URLSearchParams(window.location.search);
+const lowonganId = urlParams.get("lowonganId");
 
+if (lowonganId) {
+    localStorage.setItem('selectedLowonganId', lowonganId);
+}
+
+function fetchLogs() {
   // Show loading state
   document.getElementById("logsTableBody").innerHTML = `
     <tr>
@@ -27,15 +36,14 @@ function fetchLogs() {
     </tr>
   `;
 
-  console.log("Fetching logs for mataKuliahId:", mataKuliahId);
-  const apiUrl = `http://localhost:8080/api/log/matakuliah/${mataKuliahId}`;
-  console.log("Fetching from halo:", apiUrl);
+  console.log("Fetching logs for lowonganId:", lowonganId);
+  const apiUrl = `http://localhost:8080/api/log/matakuliah/${lowonganId}`;
 
   fetch(apiUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": "0000-0000-0000-0000-000000000003", // TODO
+      "Authorization": `Bearer ${token}`,
     },
   })
     .then(async (response) => {
@@ -58,10 +66,10 @@ function fetchLogs() {
         logs = response.data;
         filteredLogs = [...logs]; // Create a copy for filtering
 
-        if (mataKuliahId) {
+        if (lowonganId) {
           const linkElement = document.getElementById("create-log-link");
           if (linkElement) {
-            linkElement.href = `/pages/log/create.html?mataKuliahId=${mataKuliahId}`;
+            linkElement.href = `/pages/log/create.html?lowonganId=${lowonganId}`;
           }
         }
 
@@ -262,11 +270,11 @@ function applyFilters() {
 function deleteLog() {
   const id = document.getElementById("deleteItemId").value;
 
-  fetch(`http://localhost:8080/api/log/${mataKuliahId}/${id}`, {
+  fetch(`http://localhost:8080/api/log/${lowonganId}/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": " 0000-0000-0000-0000-000000000003", // TODO
+      "Authorization": `Bearer ${token}`,
     },
   })
     .then(async (response) => {
@@ -326,7 +334,7 @@ function viewLogDetail(id) {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "X-Student-ID": " 0000-0000-0000-0000-000000000003", // TODO
+      "Authorization": `Bearer ${token}`,
     },
   })
     .then((response) => response.json())

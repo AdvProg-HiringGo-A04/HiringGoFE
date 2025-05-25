@@ -1,10 +1,28 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search); // TODO
-  const mataKuliahId = urlParams.get("mataKuliahId"); // TODO
 
-  if (mataKuliahId) {
-    document.getElementById("mataKuliahId").value = mataKuliahId;
+document.addEventListener("DOMContentLoaded", function () {
+  const token = localStorage.getItem('token');
+  const urlParams = new URLSearchParams(window.location.search); // TODO
+  const lowonganId = urlParams.get("lowonganId") || urlParams.get("idlowongan") || localStorage.getItem('selectedLowonganId');
+
+  // Update semua link kembali dengan lowonganId
+  function updateBackLinks() {
+      if (lowonganId) {
+          // Update link "Batal"
+          const cancelLink = document.querySelector('a[href="/pages/log/list.html"]');
+          if (cancelLink) {
+              cancelLink.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+          }
+          
+          // Update back button di header
+          const backButton = document.querySelector('a.text-blue-900[href="/pages/log/list.html"]');
+          if (backButton) {
+              backButton.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+          }
+      }
   }
+  
+  // Panggil update back links
+  updateBackLinks();
 
   document.getElementById("createLogForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -64,18 +82,16 @@ document.addEventListener("DOMContentLoaded", function () {
         keterangan: formData.get("keterangan") || null,
         pesan: formData.get("pesan") || null,
         mataKuliahId: formData.get("mataKuliahId"),
+        lowonganId: lowonganId || localStorage.getItem('selectedLowonganId'),
       };
 
-      const studentId = localStorage.getItem("studentId"); // TODO
-
       console.log("Log data to be sent:", logData);
-      console.log(mataKuliahId);
 
       fetch("http://localhost:8080/api/log", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Student-Id": "00000000-0000-0000-0000-000000000003", // TODO
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(logData),
       })
@@ -103,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.body.appendChild(toast);
 
           setTimeout(() => {
-            window.location.href = "/pages/log/list.html";
+            window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
           }, 3000);
         })
         .catch((error) => {
@@ -111,4 +127,33 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
   });
+
+  // Fungsi untuk redirect ke list dengan lowonganId
+  function redirectToList() {
+    const currentLowonganId = localStorage.getItem('selectedLowonganId');
+    if (currentLowonganId) {
+      window.location.href = `/pages/log/list.html?lowonganId=${currentLowonganId}`;
+    } else {
+      window.location.href = "/pages/log/list.html";
+    }
+  }
+  
+  // Tambahkan event listener untuk tombol Batal
+  const cancelButton = document.querySelector('a[href*="/pages/log/list.html"]');
+  if (cancelButton) {
+    cancelButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      redirectToList();
+    });
+  }
 });
+
+// Fungsi global untuk navigasi kembali
+function navigateBack() {
+    const lowonganId = localStorage.getItem('selectedLowonganId');
+    if (lowonganId) {
+        window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+    } else {
+        window.location.href = "/pages/log/list.html";
+    }
+}
