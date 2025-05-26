@@ -27,6 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Check authentication
   if (!token || !userId) {
+    console.warn('No token or userId found, redirecting to login');
     window.location.href = '/index.html';
     return;
   }
@@ -49,6 +50,16 @@ async function loadDashboard() {
   const errorElement = document.getElementById('error');
   const dashboardContent = document.getElementById('dashboard-content');
 
+  // Enhanced debugging
+  console.log('=== Dashboard Debug Start ===');
+  console.log('Token exists:', !!token);
+  console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'No token');
+  console.log('Backend URL:', BACKEND_URL);
+  console.log('JWT Payload:', payload);
+  console.log('User ID:', userId);
+  console.log('User Role:', userRole);
+  console.log('================================');
+
   try {
     showLoading(true);
     hideError();
@@ -56,27 +67,53 @@ async function loadDashboard() {
     const url = `${BACKEND_URL}/api/dashboard`;
     console.log('Fetching dashboard URL:', url);
 
+    // Log the exact headers being sent
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    console.log('Request headers:', headers);
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      headers: headers,
+      mode: 'cors',
+      credentials: 'same-origin'
     });
+
+    console.log('Response received:');
+    console.log('- Status:', response.status);
+    console.log('- Status Text:', response.statusText);
+    console.log('- Headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       if (response.status === 401) {
+        console.error('Unauthorized - Token might be invalid or expired');
         localStorage.removeItem('token');
         window.location.href = '/index.html';
         return;
       }
-      const errText = await response.text();
+      
+      // Try to get error message from response
+      let errText;
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errText = errorData.message || errorData.error || response.statusText;
+        } else {
+          errText = await response.text();
+        }
+      } catch (parseError) {
+        errText = response.statusText;
+      }
+      
       console.error('Response error:', errText);
       throw new Error(`HTTP ${response.status}: ${errText}`);
     }
 
     const data = await response.json();
-    console.log('Dashboard data:', data);
+    console.log('Dashboard data received:', data);
 
     showLoading(false);
     dashboardContent.classList.remove('hidden');
@@ -85,23 +122,44 @@ async function loadDashboard() {
 
   } catch (error) {
     console.error('Error loading dashboard:', error);
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    
     showLoading(false);
-    showError(error.message || 'Gagal memuat data dashboard');
+    
+    // Handle network errors specifically
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      showError('Network error: Please check your connection and try again');
+    } else if (error.message.includes('401')) {
+      showError('Authentication failed. Please login again.');
+      setTimeout(() => {
+        localStorage.removeItem('token');
+        window.location.href = '/index.html';
+      }, 2000);
+    } else {
+      showError(error.message || 'Gagal memuat data dashboard');
+    }
   }
 }
 
 function renderDashboard(data) {
+  console.log('Rendering dashboard with data:', data);
+  
   // Detect user role and render appropriate dashboard
   if (data.totalDosen !== undefined) {
     // Admin dashboard
+    console.log('Rendering admin dashboard');
     renderAdminDashboard(data);
   } else if (data.totalMataKuliah !== undefined && data.totalMahasiswaAssistant !== undefined) {
     // Dosen dashboard
+    console.log('Rendering dosen dashboard');
     renderDosenDashboard(data);
   } else if (data.openLowonganCount !== undefined && data.acceptedLowonganCount !== undefined) {
     // Mahasiswa dashboard
+    console.log('Rendering mahasiswa dashboard');
     renderMahasiswaDashboard(data);
   } else {
+    console.error('Unknown dashboard data format:', data);
     showError('Format data dashboard tidak dikenali');
   }
 }
