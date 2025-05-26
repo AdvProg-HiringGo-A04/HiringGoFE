@@ -1,7 +1,9 @@
+import CONFIG from '../../../js/config.js';
+const BACKEND_URL = CONFIG.API_URL;
 
 document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem('token');
-  const urlParams = new URLSearchParams(window.location.search); // TODO
+  const urlParams = new URLSearchParams(window.location.search);
   const lowonganId = urlParams.get("lowonganId") || urlParams.get("idlowongan") || localStorage.getItem('selectedLowonganId');
 
   // Update semua link kembali dengan lowonganId
@@ -87,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       console.log("Log data to be sent:", logData);
 
-      fetch("http://localhost:8080/api/log", {
+      fetch(`${BACKEND_URL}/api/log`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

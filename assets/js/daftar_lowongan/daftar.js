@@ -1,6 +1,7 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const BACKEND_URL = 'http://localhost:8080/api';
+import CONFIG from '../../../js/config.js';
+const BACKEND_URL = CONFIG.API_URL;
 
+document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const lowonganId = urlParams.get("lowonganId");
 

@@ -1,3 +1,6 @@
+import CONFIG from '../../../js/config.js';
+const BACKEND_URL = CONFIG.API_URL;
+
 let logs = [];
 let filteredLogs = [];
 // let mataKuliahId = null;
@@ -37,7 +40,7 @@ function fetchLogs() {
   `;
 
   console.log("Fetching logs for lowonganId:", lowonganId);
-  const apiUrl = `http://localhost:8080/api/log/matakuliah/${lowonganId}`;
+  const apiUrl = `${BACKEND_URL}/api/log/matakuliah/${lowonganId}`;
 
   fetch(apiUrl, {
     method: "GET",
@@ -270,7 +273,7 @@ function applyFilters() {
 function deleteLog() {
   const id = document.getElementById("deleteItemId").value;
 
-  fetch(`http://localhost:8080/api/log/${lowonganId}/${id}`, {
+  fetch(`${BACKEND_URL}/api/log/${lowonganId}/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -330,7 +333,7 @@ function closeDeleteModal() {
 
 function viewLogDetail(id) {
   console.log("Log ID:", id);
-  fetch(`http://localhost:8080/api/log/${id}`, {
+  fetch(`${BACKEND_URL}/api/log/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
