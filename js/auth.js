@@ -253,6 +253,6 @@ function isValidEmail(email) {
 function checkAuth() {
     const token = localStorage.getItem('token');
     if (token) {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'pages/dashboard/dashboard.html';
     }
 }
