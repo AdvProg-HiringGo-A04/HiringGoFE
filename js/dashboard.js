@@ -1,24 +1,25 @@
 import CONFIG from './config.js';
 const BACKEND_URL = CONFIG.API_URL;
+const AUTH_TOKEN = localStorage.getItem('token') || '';
+let CURRENT_USER_ID = null;
+let CURRENT_USER_ROLE = null;
 
-const token = localStorage.getItem('token') || '';
-
-function parseJwt(t) {
+function getCurrentUser() {
   try {
-    const base64 = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64));
-  } catch {
-    return {};
+    const tokenParts = AUTH_TOKEN.split('.');
+    if (tokenParts.length === 3) {
+      const payload = JSON.parse(atob(tokenParts[1]));
+      CURRENT_USER_ID   = payload.sub   || payload.userId || payload.id;
+      CURRENT_USER_ROLE = payload.role  
+                            || (payload.roles && payload.roles[0])
+                            || '';
+      console.log('Current user ID:', CURRENT_USER_ID);
+      console.log('Current user role:', CURRENT_USER_ROLE);
+    }
+  } catch (e) {
+    console.error('Error decoding token:', e);
   }
 }
-
-const payload = parseJwt(token);
-const userId = payload.sub || payload.id || '';
-const userRole = payload.role || '';
-
-console.log('JWT payload:', payload);
-console.log('Resolved userId:', userId);
-console.log('User role:', userRole);
 
 window.addEventListener('DOMContentLoaded', () => {
   const loadingElement = document.getElementById('loading');
@@ -26,8 +27,18 @@ window.addEventListener('DOMContentLoaded', () => {
   const dashboardContent = document.getElementById('dashboard-content');
 
   // Check authentication
-  if (!token || !userId) {
-    console.warn('No token or userId found, redirecting to login');
+  if (!AUTH_TOKEN) {
+    console.warn('No token found, redirecting to login');
+    window.location.href = '/index.html';
+    return;
+  }
+
+  // Get current user info from token
+  getCurrentUser();
+
+  // Check if we have valid user data
+  if (!CURRENT_USER_ID || !CURRENT_USER_ROLE) {
+    console.warn('No valid user ID or role found, redirecting to login');
     window.location.href = '/index.html';
     return;
   }
@@ -52,12 +63,11 @@ async function loadDashboard() {
 
   // Enhanced debugging
   console.log('=== Dashboard Debug Start ===');
-  console.log('Token exists:', !!token);
-  console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'No token');
+  console.log('Token exists:', !!AUTH_TOKEN);
+  console.log('Token preview:', AUTH_TOKEN ? AUTH_TOKEN.substring(0, 50) + '...' : 'No token');
   console.log('Backend URL:', BACKEND_URL);
-  console.log('JWT Payload:', payload);
-  console.log('User ID:', userId);
-  console.log('User Role:', userRole);
+  console.log('User ID:', CURRENT_USER_ID);
+  console.log('User Role:', CURRENT_USER_ROLE);
   console.log('================================');
 
   try {
@@ -69,7 +79,7 @@ async function loadDashboard() {
 
     // Log the exact headers being sent
     const headers = {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${AUTH_TOKEN}`,
       'Content-Type': 'application/json'
     };
     console.log('Request headers:', headers);
@@ -144,23 +154,26 @@ async function loadDashboard() {
 
 function renderDashboard(data) {
   console.log('Rendering dashboard with data:', data);
+  console.log('Current user role for rendering:', CURRENT_USER_ROLE);
   
-  // Detect user role and render appropriate dashboard
-  if (data.totalDosen !== undefined) {
-    // Admin dashboard
-    console.log('Rendering admin dashboard');
-    renderAdminDashboard(data);
-  } else if (data.totalMataKuliah !== undefined && data.totalMahasiswaAssistant !== undefined) {
-    // Dosen dashboard
-    console.log('Rendering dosen dashboard');
-    renderDosenDashboard(data);
-  } else if (data.openLowonganCount !== undefined && data.acceptedLowonganCount !== undefined) {
-    // Mahasiswa dashboard
-    console.log('Rendering mahasiswa dashboard');
-    renderMahasiswaDashboard(data);
-  } else {
-    console.error('Unknown dashboard data format:', data);
-    showError('Format data dashboard tidak dikenali');
+  // Use CURRENT_USER_ROLE instead of detecting from data structure
+  switch(CURRENT_USER_ROLE) {
+    case 'ADMIN':
+      console.log('Rendering admin dashboard');
+      renderAdminDashboard(data);
+      break;
+    case 'DOSEN':
+      console.log('Rendering dosen dashboard');
+      renderDosenDashboard(data);
+      break;
+    case 'MAHASISWA':
+      console.log('Rendering mahasiswa dashboard');
+      renderMahasiswaDashboard(data);
+      break;
+    default:
+      console.error('Unknown user role:', CURRENT_USER_ROLE);
+      showError('Role pengguna tidak dikenali: ' + CURRENT_USER_ROLE);
+      break;
   }
 }
 
@@ -229,24 +242,34 @@ function renderAcceptedLowonganList(lowonganList) {
   }
   
   try {
-    container.innerHTML = lowonganList.map(lowongan => `
-      <div class="lowongan-item">
-        <div class="lowongan-info flex-1">
-          <h4>${lowongan.mataKuliahName || 'Mata Kuliah'}</h4>
-          <p>Tahun Ajaran: ${lowongan.tahunAjaran || '-'} | Semester: ${lowongan.semester || '-'}</p>
+    container.innerHTML = lowonganList.map(lowongan => {
+      // Debug log to see the structure
+      console.log('Lowongan object:', lowongan);
+      
+      // Access the nested mataKuliah object
+      const mataKuliahName = lowongan.mataKuliah?.namaMataKuliah || 
+                            lowongan.mataKuliahName || 
+                            'Mata Kuliah';
+      
+      return `
+        <div class="lowongan-item">
+          <div class="lowongan-info flex-1">
+            <h4>${mataKuliahName}</h4>
+            <p>Tahun Ajaran: ${lowongan.tahunAjaran || '-'} | Semester: ${lowongan.semester || '-'}</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="viewLowonganDetail('${lowongan.id}')" 
+                    class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+              Detail
+            </button>
+            <button onclick="viewLogs('${lowongan.id}')" 
+                    class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+              Log
+            </button>
+          </div>
         </div>
-        <div class="flex space-x-2">
-          <button onclick="viewLowonganDetail('${lowongan.id}')" 
-                  class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
-            Detail
-          </button>
-          <button onclick="viewLogs('${lowongan.id}')" 
-                  class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
-            Log
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (error) {
     console.error('Error rendering lowongan list:', error);
     container.innerHTML = '<p class="text-red-500 text-center py-4">Error menampilkan daftar lowongan</p>';
