@@ -15,10 +15,37 @@ function getCurrentUser() {
                             || '';
       console.log('Current user ID:', CURRENT_USER_ID);
       console.log('Current user role:', CURRENT_USER_ROLE);
+      return true;
     }
+    return false;
   } catch (e) {
     console.error('Error decoding token:', e);
+    return false;
   }
+}
+
+function redirectToLogin() {
+  // Clear any existing token
+  localStorage.removeItem('token');
+  localStorage.removeItem('selectedLowonganId');
+  
+  // Use relative path that works both locally and on Vercel
+  const currentPath = window.location.pathname;
+  let loginPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    // We're in /pages/dashboard/, so go back two levels
+    loginPath = '../../index.html';
+  } else if (currentPath.includes('/pages/')) {
+    // We're in some other /pages/ subfolder, go back one level
+    loginPath = '../index.html';
+  } else {
+    // We're at root level
+    loginPath = 'index.html';
+  }
+  
+  console.log('Redirecting to login:', loginPath);
+  window.location.href = loginPath;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -26,23 +53,32 @@ window.addEventListener('DOMContentLoaded', () => {
   const errorElement = document.getElementById('error');
   const dashboardContent = document.getElementById('dashboard-content');
 
-  // Check authentication
+  console.log('=== Dashboard Authentication Check ===');
+  console.log('Token exists:', !!AUTH_TOKEN);
+  console.log('Current path:', window.location.pathname);
+
+  // Check authentication first
   if (!AUTH_TOKEN) {
     console.warn('No token found, redirecting to login');
-    window.location.href = '/index.html';
+    redirectToLogin();
     return;
   }
 
   // Get current user info from token
-  getCurrentUser();
+  if (!getCurrentUser()) {
+    console.warn('Failed to decode token, redirecting to login');
+    redirectToLogin();
+    return;
+  }
 
   // Check if we have valid user data
   if (!CURRENT_USER_ID || !CURRENT_USER_ROLE) {
     console.warn('No valid user ID or role found, redirecting to login');
-    window.location.href = '/index.html';
+    redirectToLogin();
     return;
   }
 
+  console.log('Authentication successful, loading dashboard');
   loadDashboard();
 
   // Logout functionality
@@ -51,7 +87,7 @@ window.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('token');
       localStorage.removeItem('selectedLowonganId');
-      window.location.href = '/index.html';
+      redirectToLogin();
     });
   }
 });
@@ -99,8 +135,7 @@ async function loadDashboard() {
     if (!response.ok) {
       if (response.status === 401) {
         console.error('Unauthorized - Token might be invalid or expired');
-        localStorage.removeItem('token');
-        window.location.href = '/index.html';
+        redirectToLogin();
         return;
       }
       
@@ -126,7 +161,9 @@ async function loadDashboard() {
     console.log('Dashboard data received:', data);
 
     showLoading(false);
-    dashboardContent.classList.remove('hidden');
+    if (dashboardContent) {
+      dashboardContent.classList.remove('hidden');
+    }
 
     renderDashboard(data);
 
@@ -143,8 +180,7 @@ async function loadDashboard() {
     } else if (error.message.includes('401')) {
       showError('Authentication failed. Please login again.');
       setTimeout(() => {
-        localStorage.removeItem('token');
-        window.location.href = '/index.html';
+        redirectToLogin();
       }, 2000);
     } else {
       showError(error.message || 'Gagal memuat data dashboard');
@@ -179,12 +215,20 @@ function renderDashboard(data) {
 
 function renderAdminDashboard(data) {
   try {
-    document.getElementById('admin-dashboard').classList.remove('hidden');
+    const adminDashboard = document.getElementById('admin-dashboard');
+    if (adminDashboard) {
+      adminDashboard.classList.remove('hidden');
+    }
     
-    document.getElementById('admin-total-dosen').textContent = data.totalDosen || 0;
-    document.getElementById('admin-total-mahasiswa').textContent = data.totalMahasiswa || 0;
-    document.getElementById('admin-total-mata-kuliah').textContent = data.totalMataKuliah || 0;
-    document.getElementById('admin-total-lowongan').textContent = data.totalLowongan || 0;
+    const totalDosenEl = document.getElementById('admin-total-dosen');
+    const totalMahasiswaEl = document.getElementById('admin-total-mahasiswa');
+    const totalMataKuliahEl = document.getElementById('admin-total-mata-kuliah');
+    const totalLowonganEl = document.getElementById('admin-total-lowongan');
+    
+    if (totalDosenEl) totalDosenEl.textContent = data.totalDosen || 0;
+    if (totalMahasiswaEl) totalMahasiswaEl.textContent = data.totalMahasiswa || 0;
+    if (totalMataKuliahEl) totalMataKuliahEl.textContent = data.totalMataKuliah || 0;
+    if (totalLowonganEl) totalLowonganEl.textContent = data.totalLowongan || 0;
   } catch (error) {
     console.error('Error rendering admin dashboard:', error);
     showError('Error menampilkan dashboard admin');
@@ -193,11 +237,18 @@ function renderAdminDashboard(data) {
 
 function renderDosenDashboard(data) {
   try {
-    document.getElementById('dosen-dashboard').classList.remove('hidden');
+    const dosenDashboard = document.getElementById('dosen-dashboard');
+    if (dosenDashboard) {
+      dosenDashboard.classList.remove('hidden');
+    }
     
-    document.getElementById('dosen-total-mata-kuliah').textContent = data.totalMataKuliah || 0;
-    document.getElementById('dosen-total-assistant').textContent = data.totalMahasiswaAssistant || 0;
-    document.getElementById('dosen-open-lowongan').textContent = data.openLowonganCount || 0;
+    const totalMataKuliahEl = document.getElementById('dosen-total-mata-kuliah');
+    const totalAssistantEl = document.getElementById('dosen-total-assistant');
+    const openLowonganEl = document.getElementById('dosen-open-lowongan');
+    
+    if (totalMataKuliahEl) totalMataKuliahEl.textContent = data.totalMataKuliah || 0;
+    if (totalAssistantEl) totalAssistantEl.textContent = data.totalMahasiswaAssistant || 0;
+    if (openLowonganEl) openLowonganEl.textContent = data.openLowonganCount || 0;
   } catch (error) {
     console.error('Error rendering dosen dashboard:', error);
     showError('Error menampilkan dashboard dosen');
@@ -206,19 +257,25 @@ function renderDosenDashboard(data) {
 
 function renderMahasiswaDashboard(data) {
   try {
-    document.getElementById('mahasiswa-dashboard').classList.remove('hidden');
+    const mahasiswaDashboard = document.getElementById('mahasiswa-dashboard');
+    if (mahasiswaDashboard) {
+      mahasiswaDashboard.classList.remove('hidden');
+    }
     
     // Update statistics
-    document.getElementById('mahasiswa-open-lowongan').textContent = data.openLowonganCount || 0;
-    document.getElementById('mahasiswa-accepted').textContent = data.acceptedLowonganCount || 0;
-    document.getElementById('mahasiswa-pending').textContent = data.pendingLowonganCount || 0;
-    document.getElementById('mahasiswa-rejected').textContent = data.rejectedLowonganCount || 0;
+    const openLowonganEl = document.getElementById('mahasiswa-open-lowongan');
+    const acceptedEl = document.getElementById('mahasiswa-accepted');
+    const pendingEl = document.getElementById('mahasiswa-pending');
+    const rejectedEl = document.getElementById('mahasiswa-rejected');
+    const totalHoursEl = document.getElementById('mahasiswa-total-hours');
+    const totalInsentifEl = document.getElementById('mahasiswa-total-insentif');
     
-    // Update total hours and incentives
-    document.getElementById('mahasiswa-total-hours').textContent = 
-        (data.totalLogHours || 0).toFixed(1);
-    document.getElementById('mahasiswa-total-insentif').textContent = 
-        formatCurrency(data.totalInsentif || 0);
+    if (openLowonganEl) openLowonganEl.textContent = data.openLowonganCount || 0;
+    if (acceptedEl) acceptedEl.textContent = data.acceptedLowonganCount || 0;
+    if (pendingEl) pendingEl.textContent = data.pendingLowonganCount || 0;
+    if (rejectedEl) rejectedEl.textContent = data.rejectedLowonganCount || 0;
+    if (totalHoursEl) totalHoursEl.textContent = (data.totalLogHours || 0).toFixed(1);
+    if (totalInsentifEl) totalInsentifEl.textContent = formatCurrency(data.totalInsentif || 0);
     
     // Render accepted lowongan list
     renderAcceptedLowonganList(data.acceptedLowonganList || []);
@@ -281,7 +338,18 @@ function viewLowonganDetail(lowonganId) {
     console.error('Lowongan ID tidak tersedia');
     return;
   }
-  window.location.href = `/pages/lowongan/detail.html?id=${lowonganId}`;
+  
+  // Use relative path for navigation
+  const currentPath = window.location.pathname;
+  let targetPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    targetPath = `../lowongan/detail.html?id=${lowonganId}`;
+  } else {
+    targetPath = `/pages/lowongan/detail.html?id=${lowonganId}`;
+  }
+  
+  window.location.href = targetPath;
 }
 
 function viewLogs(lowonganId) {
@@ -289,8 +357,20 @@ function viewLogs(lowonganId) {
     console.error('Lowongan ID tidak tersedia');
     return;
   }
+  
   localStorage.setItem('selectedLowonganId', lowonganId);
-  window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+  
+  // Use relative path for navigation
+  const currentPath = window.location.pathname;
+  let targetPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    targetPath = `../log/list.html?lowonganId=${lowonganId}`;
+  } else {
+    targetPath = `/pages/log/list.html?lowonganId=${lowonganId}`;
+  }
+  
+  window.location.href = targetPath;
 }
 
 function formatCurrency(amount) {
