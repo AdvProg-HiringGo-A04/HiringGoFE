@@ -1,4 +1,5 @@
-const BACKEND_URL = 'http://localhost:8000';
+import CONFIG from './config.js';
+const BACKEND_URL = CONFIG.API_URL;
 
 const token = localStorage.getItem('token') || '';
 
@@ -49,7 +50,7 @@ window.addEventListener('DOMContentLoaded', () => {
         throw new Error('User ID tidak tersedia dalam token.');
       }
 
-      const url = `${BACKEND_URL}/mahasiswa/${userId}/honors?year=${year}&month=${month}`;
+      const url = `${BACKEND_URL}${CONFIG.AUTH_ENDPOINT}/mahasiswa/${userId}/honors?year=${year}&month=${month}`;
       console.log('Fetching URL:', url);
 
       const res = await fetch(url, {
