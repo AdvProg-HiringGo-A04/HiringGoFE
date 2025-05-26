@@ -147,7 +147,7 @@ function login(email, password) {
             
             localStorage.setItem('token', token);
 
-            window.location.href = 'dashboard.html';
+            window.location.href = 'pages/dashboard/dashboard.html';
         }
     })
     .catch(error => {
