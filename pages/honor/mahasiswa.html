@@ -7,20 +7,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-  <!-- navbar -->
   <div data-include="/components/navbar.html"></div>
 
   <div class="p-4 py-12 lg:px-28 flex-1 flex flex-col">
-    <!-- unauthorized message -->
     <div id="unauth" class="hidden flex items-center justify-center">
       <h2 class="text-xl font-medium text-red-600">
         Akses ditolak. Hanya mahasiswa yang dapat mengakses halaman ini.
       </h2>
     </div>
 
-    <!-- main content -->
     <div id="content" class="hidden flex-1 flex flex-col">
-      <!-- header -->
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Honor Dashboard</h1>
         <button
@@ -85,7 +81,6 @@
           Tampilkan Honor
         </button>
       </div>
-
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table
           id="honorTable"
@@ -107,10 +102,9 @@
     </div>
   </div>
 
-  <!-- footer -->
   <div data-include="/components/footer.html"></div>
 
   <script src="/assets/js/include.js"></script>
-  <script src="../../js/honor-dashboard.js"></script>
+  <script type="module" src="../../js/honor-dashboard.js"></script>
 </body>
 </html>

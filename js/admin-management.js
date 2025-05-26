@@ -1,5 +1,4 @@
 import CONFIG from "./config.js";
-
 const API_BASE_URL = CONFIG.API_URL;
 const AUTH_TOKEN = localStorage.getItem('token');
 let CURRENT_USER_ID   = null;

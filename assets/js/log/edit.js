@@ -1,3 +1,5 @@
+import CONFIG from '../../../js/config.js';
+const BACKEND_URL = CONFIG.API_URL;
 
 document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem('token');
@@ -13,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("Log ID:", logId);
 
-  fetch(`http://localhost:8080/api/log/${logId}`, {
+  fetch(`${BACKEND_URL}/api/log/${logId}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -121,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
         lowonganId: lowonganId || localStorage.getItem('selectedLowonganId'),
       };
 
-      fetch(`http://localhost:8080/api/log/${logId}`, {
+      fetch(`${BACKEND_URL}/api/log/${logId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
