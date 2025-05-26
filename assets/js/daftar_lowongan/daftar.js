@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.appendChild(toast);
 
         setTimeout(() => {
-          window.location.href = "/dashboard.html"; // Redirect after successful registration
+          window.location.href = "/pages/dashboard/dashboard.html"; // Redirect after successful registration
         }, 3000);
       } catch (error) {
         console.error("Error:", error);

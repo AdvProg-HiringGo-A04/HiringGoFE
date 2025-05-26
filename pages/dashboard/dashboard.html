@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>HiringGo - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-card.admin {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .stat-card.dosen {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .stat-card.mahasiswa {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .lowongan-list {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .lowongan-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .lowongan-item:last-child {
+            border-bottom: none;
+        }
+        
+        .lowongan-info h4 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .lowongan-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div data-include="/components/navbar.html"></div>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
+            <p class="text-gray-600">Selamat datang di HiringGo Dashboard</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2">Memuat data dashboard...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error hidden">
+            <p id="error-message">Terjadi kesalahan saat memuat data.</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard-content" class="hidden">
+            <!-- Admin Dashboard -->
+            <div id="admin-dashboard" class="hidden">
+                <div class="stats-grid">
+                    <div class="stat-card admin">
+                        <div class="stat-number" id="admin-total-dosen">0</div>
+                        <div class="stat-label">Total Dosen</div>
+                    </div>
+                    <div class="stat-card admin">
+                        <div class="stat-number" id="admin-total-mahasiswa">0</div>
+                        <div class="stat-label">Total Mahasiswa</div>
+                    </div>
+                    <div class="stat-card admin">
+                        <div class="stat-number" id="admin-total-mata-kuliah">0</div>
+                        <div class="stat-label">Total Mata Kuliah</div>
+                    </div>
+                    <div class="stat-card admin">
+                        <div class="stat-number" id="admin-total-lowongan">0</div>
+                        <div class="stat-label">Total Lowongan</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dosen Dashboard -->
+            <div id="dosen-dashboard" class="hidden">
+                <div class="stats-grid">
+                    <div class="stat-card dosen">
+                        <div class="stat-number" id="dosen-total-mata-kuliah">0</div>
+                        <div class="stat-label">Total Mata Kuliah</div>
+                    </div>
+                    <div class="stat-card dosen">
+                        <div class="stat-number" id="dosen-total-assistant">0</div>
+                        <div class="stat-label">Total Mahasiswa Assistant</div>
+                    </div>
+                    <div class="stat-card dosen">
+                        <div class="stat-number" id="dosen-open-lowongan">0</div>
+                        <div class="stat-label">Lowongan Terbuka</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mahasiswa Dashboard -->
+            <div id="mahasiswa-dashboard" class="hidden">
+                <div class="stats-grid">
+                    <div class="stat-card mahasiswa">
+                        <div class="stat-number" id="mahasiswa-open-lowongan">0</div>
+                        <div class="stat-label">Lowongan Terbuka</div>
+                    </div>
+                    <div class="stat-card mahasiswa">
+                        <div class="stat-number" id="mahasiswa-accepted">0</div>
+                        <div class="stat-label">Diterima</div>
+                    </div>
+                    <div class="stat-card mahasiswa">
+                        <div class="stat-number" id="mahasiswa-pending">0</div>
+                        <div class="stat-label">Menunggu</div>
+                    </div>
+                    <div class="stat-card mahasiswa">
+                        <div class="stat-number" id="mahasiswa-rejected">0</div>
+                        <div class="stat-label">Ditolak</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="lowongan-list">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Total Jam Log</h3>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600 mb-2" id="mahasiswa-total-hours">0</div>
+                            <div class="text-gray-600">Jam</div>
+                        </div>
+                    </div>
+                    
+                    <div class="lowongan-list">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Total Insentif</h3>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600 mb-2" id="mahasiswa-total-insentif">Rp 0</div>
+                            <div class="text-gray-600">Rupiah</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lowongan-list mt-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Lowongan yang Diterima</h3>
+                    <div id="accepted-lowongan-list">
+                        <p class="text-gray-500 text-center py-4">Tidak ada lowongan yang diterima</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-include="/components/footer.html"></div>
+
+    <script src="/assets/js/include.js"></script>
+    <script src="/assets/js/toast.js"></script>
+    <script src="/js/dashboard.js"></script>
+
+</body>
+</html>
