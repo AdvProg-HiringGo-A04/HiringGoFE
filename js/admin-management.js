@@ -4,8 +4,13 @@ const AUTH_TOKEN = localStorage.getItem('token');
 let CURRENT_USER_ID   = null;
 let CURRENT_USER_ROLE = null;
 
-
 document.addEventListener('DOMContentLoaded', function() {
+  // Debug API configuration
+  console.log('🔍 API Configuration Debug:');
+  console.log('API_BASE_URL:', API_BASE_URL);
+  console.log('AUTH_TOKEN exists:', !!AUTH_TOKEN);
+  console.log('AUTH_TOKEN preview:', AUTH_TOKEN ? AUTH_TOKEN.substring(0, 20) + '...' : 'No token');
+  
   if (!AUTH_TOKEN) {
     window.location.href = '../../index.html';
     return;
@@ -36,9 +41,16 @@ function initializePage() {
     
     document.getElementById('newRole').addEventListener('change', toggleAdditionalFields);
     
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    // Safe element access
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
     
-    document.querySelector('.close').addEventListener('click', closeUpdateRoleModal);
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeUpdateRoleModal);
+    }
     
     window.addEventListener('click', function(event) {
         const modal = document.getElementById('updateRoleModal');
@@ -64,40 +76,53 @@ function getCurrentUser() {
   }
 }
 
+let switchTabTimeout;
+
 function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
-    const tabContent = document.getElementById(tabName + 'Tab');
-    if (tabContent) {
-        tabContent.classList.add('active');
+    // Debounce rapid tab switches
+    if (switchTabTimeout) {
+        clearTimeout(switchTabTimeout);
     }
     
-    switch(tabName) {
-        case 'mahasiswa':
-            loadMahasiswa();
-            break;
-        case 'dosen':
-            loadDosen();
-            break;
-        case 'admin':
-            loadAdmin();
-            break;
-    }
-    
-    clearAlerts();
+    switchTabTimeout = setTimeout(() => {
+        // Remove active from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Activate clicked tab
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        // Show target content
+        const tabContent = document.getElementById(tabName + 'Tab');
+        if (tabContent) {
+            tabContent.classList.add('active');
+        }
+        
+        switch(tabName) {
+            case 'mahasiswa':
+                loadMahasiswa();
+                break;
+            case 'dosen':
+                loadDosen();
+                break;
+            case 'admin':
+                loadAdmin();
+                break;
+        }
+        
+        clearAlerts();
+    }, 100); // Wait 100ms before switching
 }
 
 async function loadMahasiswa() {
     try {
-        const mahasiswa = await apiCall('/mahasiswa');
+        const mahasiswa = await apiCall('/mahasiswa'); // Remove /api prefix
         const tbody = document.querySelector('#mahasiswaTable tbody');
         
         if (mahasiswa && mahasiswa.length > 0) {
@@ -341,7 +366,11 @@ function openUpdateRoleModal(userId, userEmail, currentRole, currentName = '') {
     document.getElementById('updateNpm').value = '';
     document.getElementById('additionalFields').style.display = 'none';
     
-    document.getElementById('updateRoleModal').style.display = 'block';
+    // Simple modal show - support both methods
+    const modal = document.getElementById('updateRoleModal');
+    modal.style.display = 'block';
+    modal.classList.remove('hidden');
+    
     clearAlert('updateRoleAlert');
 }
 
@@ -384,7 +413,11 @@ function toggleAdditionalFields() {
 }
 
 function closeUpdateRoleModal() {
-    document.getElementById('updateRoleModal').style.display = 'none';
+    // Simple modal hide - support both methods
+    const modal = document.getElementById('updateRoleModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    
     document.getElementById('updateRoleForm').reset();
     document.getElementById('additionalFields').style.display = 'none';
     clearAlert('updateRoleAlert');
@@ -405,7 +438,6 @@ function friendlyMessage(raw = '') {
   }
   return raw;
 }
-
 
 async function handleUpdateRole(e) {
   e.preventDefault();
@@ -469,6 +501,10 @@ async function handleUpdateRole(e) {
 }
 
 async function deleteUser(userId, userRole) {
+    console.log('🗑️ DELETE USER DEBUG:');
+    console.log('userId:', userId);
+    console.log('userRole:', userRole);
+    
     try {
         let endpoint;
         switch(userRole) {
@@ -485,28 +521,49 @@ async function deleteUser(userId, userRole) {
                 throw new Error('Role tidak valid');
         }
         
+        console.log('🌐 DELETE endpoint:', endpoint);
         await apiCall(endpoint, 'DELETE');
+        console.log('✅ DELETE API call successful');
         
-        const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
-        const alertId = getAlertIdByTab(activeTab);
+        const activeTab = document.querySelector('.tab.active');
+        console.log('🔍 Active tab element:', activeTab);
+        console.log('🔍 Active tab data-tab:', activeTab?.getAttribute('data-tab'));
+        
+        const activeTabName = activeTab?.getAttribute('data-tab');
+        const alertId = getAlertIdByTab(activeTabName);
+        
+        console.log('📢 Showing success alert:', alertId);
         showAlert(alertId, 'success', `${userRole} berhasil dihapus!`);
         
-        switch(activeTab) {
+        console.log('🔄 Reloading table data for tab:', activeTabName);
+        
+        // FORCE reload based on current tab
+        switch(activeTabName) {
             case 'mahasiswa':
-                loadMahasiswa();
+                console.log('🔄 Reloading mahasiswa data...');
+                await loadMahasiswa();
                 break;
             case 'dosen':
-                loadDosen();
+                console.log('🔄 Reloading dosen data...');
+                await loadDosen();
                 break;
             case 'admin':
-                loadAdmin();
+                console.log('🔄 Reloading admin data...');
+                await loadAdmin();
                 break;
+            default:
+                console.log('⚠️ Unknown tab, reloading all data...');
+                await loadMahasiswa();
+                await loadDosen();
+                await loadAdmin();
         }
         
+        console.log('✅ Table reload completed');
+        
     } catch (error) {
-        console.error('Error deleting user:', error);
-        const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
-        const alertId = getAlertIdByTab(activeTab);
+        console.error('❌ Error deleting user:', error);
+        const activeTab = document.querySelector('.tab.active');
+        const alertId = getAlertIdByTab(activeTab?.getAttribute('data-tab'));
         showAlert(alertId, 'error', error.message || 'Gagal menghapus user');
     }
 }
@@ -537,7 +594,8 @@ function handleLogout() {
     }
 }
 
-async function apiCall(endpoint, method = 'GET', body = null) {
+// Enhanced apiCall with retry mechanism
+async function apiCall(endpoint, method = 'GET', body = null, retryCount = 0) {
     const config = {
         method,
         headers: {
@@ -545,32 +603,52 @@ async function apiCall(endpoint, method = 'GET', body = null) {
             'Content-Type': 'application/json'
         }
     };
+    
     if (body && ['POST','PUT','PATCH'].includes(method)) {
         config.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-
-    let payload = null;
     try {
-        payload = await response.json();
-    } catch (_) {}
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
-    if (!response.ok) {
-        const backendMsg =
-            payload?.message ||
-            payload?.error ||
-            (payload?.errors && JSON.stringify(payload.errors)) ||
-            `${response.status} ${response.statusText}`;
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (_) {}
 
-        throw new Error(backendMsg);
+        if (!response.ok) {
+            // If 500 error and we haven't retried yet, try again
+            if (response.status === 500 && retryCount < 2) {
+                console.log(`🔄 Retrying API call (attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                return apiCall(endpoint, method, body, retryCount + 1);
+            }
+            
+            const backendMsg =
+                payload?.message ||
+                payload?.error ||
+                (payload?.errors && JSON.stringify(payload.errors)) ||
+                `${response.status} ${response.statusText}`;
+
+            throw new Error(backendMsg);
+        }
+
+        if (method === 'DELETE') {
+            return {};
+        }
+
+        return payload?.data !== undefined ? payload.data : payload;
+        
+    } catch (error) {
+        // Retry on network errors
+        if (error.name === 'TypeError' && retryCount < 2) {
+            console.log(`🔄 Network error, retrying (attempt ${retryCount + 1})`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return apiCall(endpoint, method, body, retryCount + 1);
+        }
+        
+        throw error;
     }
-
-    if (method === 'DELETE') {
-        return {};
-    }
-
-    return payload?.data !== undefined ? payload.data : payload;
 }
 
 function isValidEmail(email) {
@@ -623,4 +701,43 @@ function hideButtonLoading(buttonId, loaderId) {
             span.style.marginLeft = '0';
         }
     }
+}
+
+// ✅ GLOBAL EXPORTS - Clean version without duplicates
+window.openUpdateRoleModal = openUpdateRoleModal;
+window.closeUpdateRoleModal = closeUpdateRoleModal;
+window.deleteUser = deleteUser;
+
+// Single confirmDeleteUser function declaration
+window.confirmDeleteUser = function(userId, role) {
+    console.log('🔧 confirmDeleteUser called with:', userId, role);
+    console.log('🔧 deleteUser function type:', typeof deleteUser);
+    
+    if (confirm(`Apakah Anda yakin ingin menghapus ${role.toLowerCase()} ini?`)) {
+        console.log('✅ User confirmed deletion, calling deleteUser...');
+        deleteUser(userId, role);
+    } else {
+        console.log('❌ User cancelled deletion');
+    }
+};
+
+// Global functions for onclick handlers
+window.openUpdateRoleModal = openUpdateRoleModal;
+window.closeUpdateRoleModal = closeUpdateRoleModal;
+window.deleteUser = deleteUser;
+
+// Fix confirmDeleteUser function
+window.confirmDeleteUser = function(userId, role) {
+    console.log('confirmDeleteUser called with:', userId, role);
+    if (confirm(`Apakah Anda yakin ingin menghapus ${role.toLowerCase()} ini?`)) {
+        console.log('User confirmed deletion, calling deleteUser...');
+        deleteUser(userId, role);
+    } else {
+        console.log('User cancelled deletion');
+    }
+};
+
+// Also make it available without window
+function confirmDeleteUser(userId, role) {
+    window.confirmDeleteUser(userId, role);
 }
