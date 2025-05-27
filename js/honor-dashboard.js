@@ -31,11 +31,6 @@ window.addEventListener('DOMContentLoaded', () => {
     return; 
   }
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    window.location.href = '/index.html'; 
-  });
-
   document.getElementById('fetchBtn').addEventListener('click', async () => {
     const year = document.getElementById('year').value;
     const month = document.getElementById('month').value;
@@ -81,7 +76,12 @@ window.addEventListener('DOMContentLoaded', () => {
       data.forEach(item => {
         const tr = document.createElement('tr');
         
-        const periode = `${item.tanggalAwal} — ${item.tanggalAkhir}`;
+        const date = new Date(item.tanggalLog);
+        const formattedDate = date.toLocaleDateString('id-ID', {
+          day:   '2-digit',
+          month: 'long',
+          year:  'numeric'
+        });
         
         const honorJam = new Intl.NumberFormat('id-ID', { 
           style: 'currency', 
@@ -94,7 +94,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }).format(item.totalPembayaran);
 
         tr.innerHTML = `
-          <td>${periode}</td>
+          <td class="px-6 py-4 whitespace-nowrap">${formattedDate}</td>
           <td>${item.mataKuliahNama || 'N/A'}</td>
           <td>${item.totalJam || 0} jam</td>
           <td>${honorJam}</td>

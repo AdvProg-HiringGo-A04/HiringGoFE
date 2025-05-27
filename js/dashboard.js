@@ -1,37 +1,84 @@
 import CONFIG from './config.js';
 const BACKEND_URL = CONFIG.API_URL;
+const AUTH_TOKEN = localStorage.getItem('token') || '';
+let CURRENT_USER_ID = null;
+let CURRENT_USER_ROLE = null;
 
-const token = localStorage.getItem('token') || '';
-
-function parseJwt(t) {
+function getCurrentUser() {
   try {
-    const base64 = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64));
-  } catch {
-    return {};
+    const tokenParts = AUTH_TOKEN.split('.');
+    if (tokenParts.length === 3) {
+      const payload = JSON.parse(atob(tokenParts[1]));
+      CURRENT_USER_ID   = payload.sub   || payload.userId || payload.id;
+      CURRENT_USER_ROLE = payload.role  
+                            || (payload.roles && payload.roles[0])
+                            || '';
+      console.log('Current user ID:', CURRENT_USER_ID);
+      console.log('Current user role:', CURRENT_USER_ROLE);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error('Error decoding token:', e);
+    return false;
   }
 }
 
-const payload = parseJwt(token);
-const userId = payload.sub || payload.id || '';
-const userRole = payload.role || '';
-
-console.log('JWT payload:', payload);
-console.log('Resolved userId:', userId);
-console.log('User role:', userRole);
+function redirectToLogin() {
+  // Clear any existing token
+  localStorage.removeItem('token');
+  localStorage.removeItem('selectedLowonganId');
+  
+  // Use relative path that works both locally and on Vercel
+  const currentPath = window.location.pathname;
+  let loginPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    // We're in /pages/dashboard/, so go back two levels
+    loginPath = '../../index.html';
+  } else if (currentPath.includes('/pages/')) {
+    // We're in some other /pages/ subfolder, go back one level
+    loginPath = '../index.html';
+  } else {
+    // We're at root level
+    loginPath = 'index.html';
+  }
+  
+  console.log('Redirecting to login:', loginPath);
+  window.location.href = loginPath;
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   const loadingElement = document.getElementById('loading');
   const errorElement = document.getElementById('error');
   const dashboardContent = document.getElementById('dashboard-content');
 
-  // Check authentication
-  if (!token || !userId) {
-    console.warn('No token or userId found, redirecting to login');
-    window.location.href = '/index.html';
+  console.log('=== Dashboard Authentication Check ===');
+  console.log('Token exists:', !!AUTH_TOKEN);
+  console.log('Current path:', window.location.pathname);
+
+  // Check authentication first
+  if (!AUTH_TOKEN) {
+    console.warn('No token found, redirecting to login');
+    redirectToLogin();
     return;
   }
 
+  // Get current user info from token
+  if (!getCurrentUser()) {
+    console.warn('Failed to decode token, redirecting to login');
+    redirectToLogin();
+    return;
+  }
+
+  // Check if we have valid user data
+  if (!CURRENT_USER_ID || !CURRENT_USER_ROLE) {
+    console.warn('No valid user ID or role found, redirecting to login');
+    redirectToLogin();
+    return;
+  }
+
+  console.log('Authentication successful, loading dashboard');
   loadDashboard();
 
   // Logout functionality
@@ -40,7 +87,7 @@ window.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('token');
       localStorage.removeItem('selectedLowonganId');
-      window.location.href = '/index.html';
+      redirectToLogin();
     });
   }
 });
@@ -52,12 +99,11 @@ async function loadDashboard() {
 
   // Enhanced debugging
   console.log('=== Dashboard Debug Start ===');
-  console.log('Token exists:', !!token);
-  console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'No token');
+  console.log('Token exists:', !!AUTH_TOKEN);
+  console.log('Token preview:', AUTH_TOKEN ? AUTH_TOKEN.substring(0, 50) + '...' : 'No token');
   console.log('Backend URL:', BACKEND_URL);
-  console.log('JWT Payload:', payload);
-  console.log('User ID:', userId);
-  console.log('User Role:', userRole);
+  console.log('User ID:', CURRENT_USER_ID);
+  console.log('User Role:', CURRENT_USER_ROLE);
   console.log('================================');
 
   try {
@@ -69,7 +115,7 @@ async function loadDashboard() {
 
     // Log the exact headers being sent
     const headers = {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${AUTH_TOKEN}`,
       'Content-Type': 'application/json'
     };
     console.log('Request headers:', headers);
@@ -89,8 +135,7 @@ async function loadDashboard() {
     if (!response.ok) {
       if (response.status === 401) {
         console.error('Unauthorized - Token might be invalid or expired');
-        localStorage.removeItem('token');
-        window.location.href = '/index.html';
+        redirectToLogin();
         return;
       }
       
@@ -116,7 +161,9 @@ async function loadDashboard() {
     console.log('Dashboard data received:', data);
 
     showLoading(false);
-    dashboardContent.classList.remove('hidden');
+    if (dashboardContent) {
+      dashboardContent.classList.remove('hidden');
+    }
 
     renderDashboard(data);
 
@@ -133,8 +180,7 @@ async function loadDashboard() {
     } else if (error.message.includes('401')) {
       showError('Authentication failed. Please login again.');
       setTimeout(() => {
-        localStorage.removeItem('token');
-        window.location.href = '/index.html';
+        redirectToLogin();
       }, 2000);
     } else {
       showError(error.message || 'Gagal memuat data dashboard');
@@ -144,34 +190,45 @@ async function loadDashboard() {
 
 function renderDashboard(data) {
   console.log('Rendering dashboard with data:', data);
+  console.log('Current user role for rendering:', CURRENT_USER_ROLE);
   
-  // Detect user role and render appropriate dashboard
-  if (data.totalDosen !== undefined) {
-    // Admin dashboard
-    console.log('Rendering admin dashboard');
-    renderAdminDashboard(data);
-  } else if (data.totalMataKuliah !== undefined && data.totalMahasiswaAssistant !== undefined) {
-    // Dosen dashboard
-    console.log('Rendering dosen dashboard');
-    renderDosenDashboard(data);
-  } else if (data.openLowonganCount !== undefined && data.acceptedLowonganCount !== undefined) {
-    // Mahasiswa dashboard
-    console.log('Rendering mahasiswa dashboard');
-    renderMahasiswaDashboard(data);
-  } else {
-    console.error('Unknown dashboard data format:', data);
-    showError('Format data dashboard tidak dikenali');
+  // Use CURRENT_USER_ROLE instead of detecting from data structure
+  switch(CURRENT_USER_ROLE) {
+    case 'ADMIN':
+      console.log('Rendering admin dashboard');
+      renderAdminDashboard(data);
+      break;
+    case 'DOSEN':
+      console.log('Rendering dosen dashboard');
+      renderDosenDashboard(data);
+      break;
+    case 'MAHASISWA':
+      console.log('Rendering mahasiswa dashboard');
+      renderMahasiswaDashboard(data);
+      break;
+    default:
+      console.error('Unknown user role:', CURRENT_USER_ROLE);
+      showError('Role pengguna tidak dikenali: ' + CURRENT_USER_ROLE);
+      break;
   }
 }
 
 function renderAdminDashboard(data) {
   try {
-    document.getElementById('admin-dashboard').classList.remove('hidden');
+    const adminDashboard = document.getElementById('admin-dashboard');
+    if (adminDashboard) {
+      adminDashboard.classList.remove('hidden');
+    }
     
-    document.getElementById('admin-total-dosen').textContent = data.totalDosen || 0;
-    document.getElementById('admin-total-mahasiswa').textContent = data.totalMahasiswa || 0;
-    document.getElementById('admin-total-mata-kuliah').textContent = data.totalMataKuliah || 0;
-    document.getElementById('admin-total-lowongan').textContent = data.totalLowongan || 0;
+    const totalDosenEl = document.getElementById('admin-total-dosen');
+    const totalMahasiswaEl = document.getElementById('admin-total-mahasiswa');
+    const totalMataKuliahEl = document.getElementById('admin-total-mata-kuliah');
+    const totalLowonganEl = document.getElementById('admin-total-lowongan');
+    
+    if (totalDosenEl) totalDosenEl.textContent = data.totalDosen || 0;
+    if (totalMahasiswaEl) totalMahasiswaEl.textContent = data.totalMahasiswa || 0;
+    if (totalMataKuliahEl) totalMataKuliahEl.textContent = data.totalMataKuliah || 0;
+    if (totalLowonganEl) totalLowonganEl.textContent = data.totalLowongan || 0;
   } catch (error) {
     console.error('Error rendering admin dashboard:', error);
     showError('Error menampilkan dashboard admin');
@@ -180,11 +237,18 @@ function renderAdminDashboard(data) {
 
 function renderDosenDashboard(data) {
   try {
-    document.getElementById('dosen-dashboard').classList.remove('hidden');
+    const dosenDashboard = document.getElementById('dosen-dashboard');
+    if (dosenDashboard) {
+      dosenDashboard.classList.remove('hidden');
+    }
     
-    document.getElementById('dosen-total-mata-kuliah').textContent = data.totalMataKuliah || 0;
-    document.getElementById('dosen-total-assistant').textContent = data.totalMahasiswaAssistant || 0;
-    document.getElementById('dosen-open-lowongan').textContent = data.openLowonganCount || 0;
+    const totalMataKuliahEl = document.getElementById('dosen-total-mata-kuliah');
+    const totalAssistantEl = document.getElementById('dosen-total-assistant');
+    const openLowonganEl = document.getElementById('dosen-open-lowongan');
+    
+    if (totalMataKuliahEl) totalMataKuliahEl.textContent = data.totalMataKuliah || 0;
+    if (totalAssistantEl) totalAssistantEl.textContent = data.totalMahasiswaAssistant || 0;
+    if (openLowonganEl) openLowonganEl.textContent = data.openLowonganCount || 0;
   } catch (error) {
     console.error('Error rendering dosen dashboard:', error);
     showError('Error menampilkan dashboard dosen');
@@ -193,19 +257,25 @@ function renderDosenDashboard(data) {
 
 function renderMahasiswaDashboard(data) {
   try {
-    document.getElementById('mahasiswa-dashboard').classList.remove('hidden');
+    const mahasiswaDashboard = document.getElementById('mahasiswa-dashboard');
+    if (mahasiswaDashboard) {
+      mahasiswaDashboard.classList.remove('hidden');
+    }
     
     // Update statistics
-    document.getElementById('mahasiswa-open-lowongan').textContent = data.openLowonganCount || 0;
-    document.getElementById('mahasiswa-accepted').textContent = data.acceptedLowonganCount || 0;
-    document.getElementById('mahasiswa-pending').textContent = data.pendingLowonganCount || 0;
-    document.getElementById('mahasiswa-rejected').textContent = data.rejectedLowonganCount || 0;
+    const openLowonganEl = document.getElementById('mahasiswa-open-lowongan');
+    const acceptedEl = document.getElementById('mahasiswa-accepted');
+    const pendingEl = document.getElementById('mahasiswa-pending');
+    const rejectedEl = document.getElementById('mahasiswa-rejected');
+    const totalHoursEl = document.getElementById('mahasiswa-total-hours');
+    const totalInsentifEl = document.getElementById('mahasiswa-total-insentif');
     
-    // Update total hours and incentives
-    document.getElementById('mahasiswa-total-hours').textContent = 
-        (data.totalLogHours || 0).toFixed(1);
-    document.getElementById('mahasiswa-total-insentif').textContent = 
-        formatCurrency(data.totalInsentif || 0);
+    if (openLowonganEl) openLowonganEl.textContent = data.openLowonganCount || 0;
+    if (acceptedEl) acceptedEl.textContent = data.acceptedLowonganCount || 0;
+    if (pendingEl) pendingEl.textContent = data.pendingLowonganCount || 0;
+    if (rejectedEl) rejectedEl.textContent = data.rejectedLowonganCount || 0;
+    if (totalHoursEl) totalHoursEl.textContent = (data.totalLogHours || 0).toFixed(1);
+    if (totalInsentifEl) totalInsentifEl.textContent = formatCurrency(data.totalInsentif || 0);
     
     // Render accepted lowongan list
     renderAcceptedLowonganList(data.acceptedLowonganList || []);
@@ -229,24 +299,34 @@ function renderAcceptedLowonganList(lowonganList) {
   }
   
   try {
-    container.innerHTML = lowonganList.map(lowongan => `
-      <div class="lowongan-item">
-        <div class="lowongan-info flex-1">
-          <h4>${lowongan.mataKuliahName || 'Mata Kuliah'}</h4>
-          <p>Tahun Ajaran: ${lowongan.tahunAjaran || '-'} | Semester: ${lowongan.semester || '-'}</p>
+    container.innerHTML = lowonganList.map(lowongan => {
+      // Debug log to see the structure
+      console.log('Lowongan object:', lowongan);
+      
+      // Access the nested mataKuliah object
+      const mataKuliahName = lowongan.mataKuliah?.namaMataKuliah || 
+                            lowongan.mataKuliahName || 
+                            'Mata Kuliah';
+      
+      return `
+        <div class="lowongan-item">
+          <div class="lowongan-info flex-1">
+            <h4>${mataKuliahName}</h4>
+            <p>Tahun Ajaran: ${lowongan.tahunAjaran || '-'} | Semester: ${lowongan.semester || '-'}</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="viewLowonganDetail('${lowongan.id}')" 
+                    class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+              Detail
+            </button>
+            <button onclick="viewLogs('${lowongan.id}')" 
+                    class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+              Log
+            </button>
+          </div>
         </div>
-        <div class="flex space-x-2">
-          <button onclick="viewLowonganDetail('${lowongan.id}')" 
-                  class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
-            Detail
-          </button>
-          <button onclick="viewLogs('${lowongan.id}')" 
-                  class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
-            Log
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (error) {
     console.error('Error rendering lowongan list:', error);
     container.innerHTML = '<p class="text-red-500 text-center py-4">Error menampilkan daftar lowongan</p>';
@@ -258,7 +338,18 @@ function viewLowonganDetail(lowonganId) {
     console.error('Lowongan ID tidak tersedia');
     return;
   }
-  window.location.href = `/pages/lowongan/detail.html?id=${lowonganId}`;
+  
+  // Use relative path for navigation
+  const currentPath = window.location.pathname;
+  let targetPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    targetPath = `../lowongan/detail.html?id=${lowonganId}`;
+  } else {
+    targetPath = `/pages/lowongan/detail.html?id=${lowonganId}`;
+  }
+  
+  window.location.href = targetPath;
 }
 
 function viewLogs(lowonganId) {
@@ -266,8 +357,20 @@ function viewLogs(lowonganId) {
     console.error('Lowongan ID tidak tersedia');
     return;
   }
+  
   localStorage.setItem('selectedLowonganId', lowonganId);
-  window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+  
+  // Use relative path for navigation
+  const currentPath = window.location.pathname;
+  let targetPath;
+  
+  if (currentPath.includes('/pages/dashboard/')) {
+    targetPath = `../log/list.html?lowonganId=${lowonganId}`;
+  } else {
+    targetPath = `/pages/log/list.html?lowonganId=${lowonganId}`;
+  }
+  
+  window.location.href = targetPath;
 }
 
 function formatCurrency(amount) {
