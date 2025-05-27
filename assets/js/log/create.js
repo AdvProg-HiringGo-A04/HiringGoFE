@@ -1,5 +1,4 @@
-import CONFIG from '../../../js/config.js';
-const BACKEND_URL = CONFIG.API_URL;
+const BACKEND_URL = "https://hiringgo.syauqiyasman.com";
 
 document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem('token');
@@ -156,6 +155,6 @@ function navigateBack() {
     if (lowonganId) {
         window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
     } else {
-        window.location.href = "/pages/log/list.html";
+        window.location.href = "/";
     }
 }

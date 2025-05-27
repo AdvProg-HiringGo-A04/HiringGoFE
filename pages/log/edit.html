@@ -11,7 +11,7 @@
     <div class="p-4 py-12 lg:px-28 min-h-screen flex flex-col">
       <div class="mb-6">
         <div>
-          <a href="/pages/log/list.html" class="text-blue-900 hover:text-blue-800 mr-2">
+          <button onclick="navigateBack()" class="text-blue-900 hover:text-blue-800 mr-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5"
@@ -26,7 +26,7 @@
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-          </a>
+          </button>
         </div>
         <p class="text-center text-sm md:text-base text-gray-600 mt-1">
           Ubah data log yang sudah ada dengan form di bawah ini.
@@ -150,11 +150,11 @@
 
           <!-- Button -->
           <div class="flex justify-end space-x-2">
-            <a
-              href="/pages/log/list.html"
+            <button
+              onclick="navigateBack()"
               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >Batal</a
-            >
+              >Batal
+            </button>
             <button
               type="submit"
               class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
@@ -169,7 +169,7 @@
     <div data-include="/components/footer.html"></div>
 
     <script src="/assets/js/include.js"></script>
-    <script type="module" src="/assets/js/log/edit.js"></script>
+    <script src="/assets/js/log/edit.js"></script>
     <script src="/assets/js/toast.js"></script>
   </body>
 </html>
