@@ -182,7 +182,12 @@
         diterimaPendaftar.forEach(p => {
           const li = document.createElement('li');
           li.className = 'pendaftar-item';
-          li.innerHTML = `<span>${p.nama}</span>`;
+          li.innerHTML = `
+            <div>
+              <span>${p.mahasiswa.namaLengkap}</span><br>
+              <span style="font-size: 0.95em; color: #555;">SKS: ${p.jumlahSks} | IPK: ${p.ipk}</span>
+            </div>
+          `;
           pendaftarDiterimaList.appendChild(li);
         });
       }
@@ -195,7 +200,10 @@
           const li = document.createElement('li');
           li.className = 'pendaftar-item';
           li.innerHTML = `
-            <span>${p.nama}</span>
+            <div>
+              <span>${p.mahasiswa.namaLengkap}</span><br>
+              <span style="font-size: 0.95em; color: #555;">SKS: ${p.jumlahSks} | IPK: ${p.ipk}</span>
+            </div>
             <span>
               <button class="btn terima">Terima</button>
               <button class="btn tolak">Tolak</button>
@@ -203,26 +211,24 @@
           `;
           // Terima
           li.querySelector('.terima').onclick = async () => {
-            await updateStatus(p.id, 'DITERIMA');
+            await updateStatus(p.mahasiswa.NPM, true);
           };
           // Tolak
           li.querySelector('.tolak').onclick = async () => {
-            await updateStatus(p.id, 'DITOLAK');
+            await updateStatus(p.mahasiswa.NPM, false);
           };
           allPendaftarList.appendChild(li);
         });
       }
     }
 
-    async function updateStatus(pendaftarId, status) {
+    async function updateStatus(npm, diterima) {
       try {
-        await fetch(`${CONFIG.API_URL}/pendaftar/${pendaftarId}/status`, {
-          method: 'PUT',
+        await fetch(`${CONFIG.API_URL}/lowongan/${id}/pendaftar/${npm}?diterima=${diterima}`, {
+          method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ status })
+            'Authorization': `Bearer ${token}`
+          }
         });
         await fetchLowonganDetail();
       } catch (err) {

@@ -3,7 +3,7 @@ const BACKEND_URL = CONFIG.API_URL;
 
 document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
-  const lowonganId = urlParams.get("lowonganId");
+  const lowonganId = urlParams.get("id");
 
   const token = localStorage.getItem('token');
   if (!token) {
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("Lowongan data to be sent:", lowonganData);
 
       try {
-        const response = await fetch(`${BACKEND_URL}/lowongan/${lowonganId}/daftar`, {
+        const response = await fetch(`${BACKEND_URL}/api/lowongan/${lowonganId}/daftar`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
