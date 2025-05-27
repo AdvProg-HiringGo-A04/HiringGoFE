@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Lowongan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            margin-top: 40px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #111827; /* navbar blue */
+            font-weight: bold; /* Extra bold */
+            font-size: 2.5rem; /* Make it bigger */
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #111827;
+            color: white;
+            border: none;
+            border-radius: 999px; /* pill shape */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #1e293b;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: #111827; /* navbar blue */
+            font-weight: bold; /* Extra bold */
+        }
+
+        .card p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .card .stats {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .btn.daftar-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            min-width: 90px;
+            border-radius: 999px; /* pill shape */
+        }
+    </style>
+</head>
+<body>
+    <div data-include="/components/navbar.html"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Daftar Lowongan</h1>
+            <!-- Removed Buat Lowongan button -->
+        </div>
+
+        <div id="lowonganContainer">
+            <!-- Cards will be injected here -->
+        </div>
+    </div>
+
+    <div data-include="/components/footer.html"></div>
+
+    <script src="/assets/js/include.js"></script>
+    <script src="/assets/js/toast.js"></script>
+
+    <script type="module">
+        import CONFIG from "../../js/config.js";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return window.location.href = 'index.html';
+
+            try {
+                const response = await fetch(`${CONFIG.API_URL}/lowongan`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // console.log(response)
+
+                if (!response.ok) throw new Error('Gagal mengambil data lowongan');
+
+                const json = await response.json();
+                console.log("Lowongan response:", json);
+                
+                const data = json.data || [];
+
+                const container = document.getElementById('lowonganContainer');
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p>Tidak ada lowongan tersedia saat ini.</p>';
+                    return;
+                }
+
+                data.forEach(lowongan => {
+                    // Manual counting based on available data
+                    const pendaftar = lowongan.pendaftar || [];
+                    const jumlahPendaftar = pendaftar.length;
+                    const jumlahDiterima = pendaftar.filter(p => p.diterima === 'DITERIMA').length;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.position = 'relative';
+                    card.innerHTML = `
+                        <div>
+                            <h3>${lowongan.mataKuliah.namaMataKuliah}</h3>
+                            <p><strong>Tahun Ajaran:</strong> ${lowongan.tahunAjaran}</p>
+                            <p><strong>Semester:</strong> ${lowongan.semester}</p>
+                            <p><strong>Jumlah Dibutuhkan:</strong> ${lowongan.jumlahDibutuhkan}</p>
+                            <p class="stats">
+                                <strong>Pendaftar:</strong> ${jumlahPendaftar || 0} |
+                                <strong>Diterima:</strong> ${jumlahDiterima || 0}
+                            </p>
+                        </div>
+                        <button class="btn daftar-btn" data-id="${lowongan.id}" style="position: absolute; bottom: 20px; right: 20px; min-width: 90px; border-radius: 999px;">Daftar</button>
+                    `;
+                    container.appendChild(card);
+                });
+
+                // Add event listeners for daftar buttons
+                document.querySelectorAll('.daftar-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        window.location.href = `daftar.html?id=${id}`;
+                    });
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('lowonganContainer').innerHTML =
+                    '<p style="color:red;">Gagal memuat lowongan. Silakan coba refresh kembali.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buat Lowongan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      margin-top: 40px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      color: #111827;
+      font-weight: bold;
+      font-size: 2.5rem;
+      /* margin-bottom: 20px; */
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 10px; /* Increase vertical padding */
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      margin-bottom: 5px;
+      box-sizing: border-box;
+    }
+
+    button[type="submit"] {
+      display: inline-block;
+      margin-top: 20px;
+      background: #111827;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-weight: bold;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+
+    .message {
+      margin-top: 20px;
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <div data-include="/components/navbar.html"></div>
+  <div class="container">
+    <div class="header">
+        <h1>Buat Lowongan Baru</h1>
+    </div>
+    <form id="lowonganForm">
+      <label for="kodeMataKuliah">Mata Kuliah</label>
+      <select id="kodeMataKuliah" name="kodeMataKuliah" required></select>
+      <div id="mataKuliahError" style="color: #dc2626; font-size: 0.95rem; margin-top: 4px;"></div>
+
+      <label for="semester">Semester</label>
+      <select id="semester" name="semester" required>
+        <option value="GANJIL">GANJIL</option>
+        <option value="GENAP">GENAP</option>
+      </select>
+
+      <label for="tahunAjaran">Tahun Ajaran</label>
+      <input type="text" id="tahunAjaran" name="tahunAjaran" placeholder="Contoh: 2024/2025" required />
+
+      <label for="jumlahAsistenDibutuhkan">Jumlah Asisten Dibutuhkan</label>
+      <input type="number" id="jumlahAsistenDibutuhkan" name="jumlahAsistenDibutuhkan" min="1" required />
+
+      <button type="submit">Submit</button>
+      <div class="message" id="message"></div>
+    </form>
+  </div>
+
+  <script src="/assets/js/include.js"></script>
+  <script src="/assets/js/toast.js"></script>
+
+  <script type="module">
+    import CONFIG from "../../js/config.js";
+
+    const mataKuliahSelect = document.getElementById("kodeMataKuliah");
+    const messageDiv = document.getElementById("message");
+    const token = localStorage.getItem("token");
+
+    // Fetch list of Mata Kuliah and populate the dropdown
+    async function loadMataKuliah() {
+      try {
+        const res = await fetch(`${CONFIG.API_URL}/courses`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const responseJson = await res.json();
+        console.log("Mata kuliah response:", responseJson);
+        const mataKuliahList = responseJson.data;
+
+        mataKuliahList.forEach(mk => {
+          const option = document.createElement("option");
+          option.value = mk.kodeMataKuliah;
+          option.textContent = mk.namaMataKuliah;
+          mataKuliahSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Failed to load mata kuliah", err);
+        document.getElementById("mataKuliahError").textContent = "Gagal memuat mata kuliah. Silakan coba refresh kembali.";
+      }
+    }
+
+    loadMataKuliah();
+
+    // Form submit
+    document.getElementById("lowonganForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        kodeMataKuliah: document.getElementById("kodeMataKuliah").value,
+        semester: document.getElementById("semester").value,
+        tahunAjaran: document.getElementById("tahunAjaran").value,
+        jumlahAsistenDibutuhkan: parseInt(document.getElementById("jumlahAsistenDibutuhkan").value),
+      };
+
+      try {
+        const res = await fetch(`${CONFIG.API_URL}/lowongan`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Gagal membuat lowongan");
+        }
+
+        alert("Lowongan berhasil dibuat!");
+        window.location.href = "lowongan.html";
+      } catch (err) {
+        messageDiv.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>

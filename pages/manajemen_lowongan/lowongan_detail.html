@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detail Lowongan</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      margin-top: 40px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #111827;
+      margin: 0;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: #fff;
+      position: relative;
+    }
+    .card h3 {
+      margin-bottom: 10px;
+      color: #111827;
+      font-weight: bold;
+    }
+    .card p {
+      margin: 5px 0;
+      color: #333;
+    }
+    .card .stats {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 24px 0 12px;
+      color: #111827;
+    }
+    .pendaftar-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .pendaftar-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .pendaftar-item:last-child {
+      border-bottom: none;
+    }
+    
+    .btn {
+            padding: 10px 20px;
+            background-color: #111827;
+            color: white;
+            border: none;
+            border-radius: 999px; /* pill shape */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+    .btn:hover {
+        background-color: #1e293b;
+    }
+    .btn.terima {
+      background: #111827;
+      color: #fff;
+    }
+    .btn.terima:hover {
+      background: #1e293b;
+    }
+    .btn.tolak {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn.tolak:hover {
+      background: #b91c1c;
+    }
+  </style>
+</head>
+<body>
+  <div data-include="/components/navbar.html"></div>
+  <div class="container">
+    <div class="header">
+      <h1>Detail Lowongan</h1>
+      <button class="btn" id="editLowonganBtn">Edit Lowongan</button>
+    </div>
+    <div id="lowonganDetailContainer"></div>
+    <div>
+      <div class="section-title">Pendaftar Diterima</div>
+      <ul id="pendaftarDiterimaList" class="pendaftar-list"></ul>
+    </div>
+    <div>
+      <div class="section-title">Semua Pendaftar</div>
+      <ul id="allPendaftarList" class="pendaftar-list"></ul>
+    </div>
+  </div>
+  <script type="module">
+    import CONFIG from "../../js/config.js";
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const token = localStorage.getItem('token');
+    const lowonganDetailContainer = document.getElementById('lowonganDetailContainer');
+    const pendaftarDiterimaList = document.getElementById('pendaftarDiterimaList');
+    const allPendaftarList = document.getElementById('allPendaftarList');
+
+    let allPendaftar = [];
+    let diterimaPendaftar = [];
+    let lowongan = null;
+
+    async function fetchLowonganDetail() {
+      try {
+        const res = await fetch(`${CONFIG.API_URL}/lowongan/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const json = await res.json();
+        lowongan = json.data;
+        diterimaPendaftar = lowongan.pendaftar.filter(p => p.diterima === 'DITERIMA');
+        allPendaftar = lowongan.pendaftar.filter(p => p.diterima !== 'DITERIMA');
+
+        // Count manually
+        lowongan.jumlahPendaftar = lowongan.pendaftar.length;
+        lowongan.jumlahDiterima = diterimaPendaftar.length;
+        renderLowongan();
+        renderPendaftar();
+      } catch (err) {
+        lowonganDetailContainer.innerHTML = '<p style="color:red;">Gagal memuat detail lowongan.</p>';
+      }
+    }
+
+    function renderLowongan() {
+      if (!lowongan) return;
+      lowonganDetailContainer.innerHTML = `
+        <div class="card">
+          <h3>${lowongan.mataKuliah.namaMataKuliah}</h3>
+          <p><strong>Tahun Ajaran:</strong> ${lowongan.tahunAjaran}</p>
+          <p><strong>Semester:</strong> ${lowongan.semester}</p>
+          <p><strong>Jumlah Dibutuhkan:</strong> ${lowongan.jumlahDibutuhkan}</p>
+          <p class="stats">
+            <strong>Pendaftar:</strong> ${lowongan.jumlahPendaftar || 0} |
+            <strong>Diterima:</strong> ${lowongan.jumlahDiterima || 0}
+          </p>
+        </div>
+      `;
+    }
+
+    function renderPendaftar() {
+      // Diterima
+      pendaftarDiterimaList.innerHTML = '';
+      if (diterimaPendaftar.length === 0) {
+        pendaftarDiterimaList.innerHTML = '<li class="pendaftar-item" style="color:#888;">-</li>';
+      } else {
+        diterimaPendaftar.forEach(p => {
+          const li = document.createElement('li');
+          li.className = 'pendaftar-item';
+          li.innerHTML = `<span>${p.nama}</span>`;
+          pendaftarDiterimaList.appendChild(li);
+        });
+      }
+      // Semua
+      allPendaftarList.innerHTML = '';
+      if (allPendaftar.length === 0) {
+        allPendaftarList.innerHTML = '<li class="pendaftar-item" style="color:#888;">-</li>';
+      } else {
+        allPendaftar.forEach(p => {
+          const li = document.createElement('li');
+          li.className = 'pendaftar-item';
+          li.innerHTML = `
+            <span>${p.nama}</span>
+            <span>
+              <button class="btn terima">Terima</button>
+              <button class="btn tolak">Tolak</button>
+            </span>
+          `;
+          // Terima
+          li.querySelector('.terima').onclick = async () => {
+            await updateStatus(p.id, 'DITERIMA');
+          };
+          // Tolak
+          li.querySelector('.tolak').onclick = async () => {
+            await updateStatus(p.id, 'DITOLAK');
+          };
+          allPendaftarList.appendChild(li);
+        });
+      }
+    }
+
+    async function updateStatus(pendaftarId, status) {
+      try {
+        await fetch(`${CONFIG.API_URL}/pendaftar/${pendaftarId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status })
+        });
+        await fetchLowonganDetail();
+      } catch (err) {
+        alert('Gagal memperbarui status pendaftar.');
+      }
+    }
+
+    document.getElementById('editLowonganBtn').addEventListener('click', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      window.location.href = `edit_lowongan.html?id=${id}`;
+    });
+
+    fetchLowonganDetail();
+  </script>
+  <script src="../../assets/js/include.js"></script>
+</body>
+</html>
