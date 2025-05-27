@@ -151,7 +151,7 @@
                     // Manual counting based on available data
                     const pendaftar = lowongan.pendaftar || [];
                     const jumlahPendaftar = pendaftar.length;
-                    const jumlahDiterima = pendaftar.filter(p => p.diterima === 'DITERIMA').length;
+                    const jumlahDiterima = pendaftar.filter(p => p.diterima === true).length;
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.style.position = 'relative';

@@ -123,6 +123,10 @@
       <div class="section-title">Semua Pendaftar</div>
       <ul id="allPendaftarList" class="pendaftar-list"></ul>
     </div>
+    <div>
+      <div class="section-title">Pendaftar Ditolak</div>
+      <ul id="pendaftarDitolakList" class="pendaftar-list"></ul>
+    </div>
   </div>
   <script type="module">
     import CONFIG from "../../js/config.js";
@@ -135,6 +139,7 @@
 
     let allPendaftar = [];
     let diterimaPendaftar = [];
+    let pendaftarDitolak = [];
     let lowongan = null;
 
     async function fetchLowonganDetail() {
@@ -144,8 +149,9 @@
         });
         const json = await res.json();
         lowongan = json.data;
-        diterimaPendaftar = lowongan.pendaftar.filter(p => p.diterima === 'DITERIMA');
-        allPendaftar = lowongan.pendaftar.filter(p => p.diterima !== 'DITERIMA');
+        diterimaPendaftar = lowongan.pendaftar.filter(p => p.diterima === true);
+        allPendaftar = lowongan.pendaftar.filter(p => p.diterima == null);
+        pendaftarDitolak = lowongan.pendaftar.filter(p => p.diterima === false);
 
         // Count manually
         lowongan.jumlahPendaftar = lowongan.pendaftar.length;
@@ -211,28 +217,61 @@
           `;
           // Terima
           li.querySelector('.terima').onclick = async () => {
-            await updateStatus(p.mahasiswa.NPM, true);
+            await updateStatus(p.mahasiswa.npm, true);
           };
           // Tolak
           li.querySelector('.tolak').onclick = async () => {
-            await updateStatus(p.mahasiswa.NPM, false);
+            await updateStatus(p.mahasiswa.npm, false);
           };
           allPendaftarList.appendChild(li);
+        });
+      }
+      // Ditolak
+      const pendaftarDitolakList = document.getElementById('pendaftarDitolakList');
+      pendaftarDitolakList.innerHTML = '';
+      if (pendaftarDitolak.length === 0) {
+        pendaftarDitolakList.innerHTML = '<li class="pendaftar-item" style="color:#888;">-</li>';
+      } else {
+        pendaftarDitolak.forEach(p => {
+          const li = document.createElement('li');
+          li.className = 'pendaftar-item';
+          li.innerHTML = `
+            <div>
+              <span>${p.mahasiswa.namaLengkap}</span><br>
+              <span style="font-size: 0.95em; color: #555;">SKS: ${p.jumlahSks} | IPK: ${p.ipk}</span>
+            </div>
+          `;
+          pendaftarDitolakList.appendChild(li);
         });
       }
     }
 
     async function updateStatus(npm, diterima) {
+      console.log('[updateStatus] NPM:', npm, 'diterima:', diterima);
+      const url = `${CONFIG.API_URL}/lowongan/${id}/pendaftar/${npm}?diterima=${diterima}`;
+      console.log('[updateStatus] URL:', url);
       try {
-        await fetch(`${CONFIG.API_URL}/lowongan/${id}/pendaftar/${npm}?diterima=${diterima}`, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
+        const text = await res.text();
+        console.log('[updateStatus] Response status:', res.status, 'Body:', text);
+        if (!res.ok) {
+          let msg = 'Gagal memperbarui status pendaftar.';
+          try {
+            const errJson = JSON.parse(text);
+            if (errJson && errJson.message) msg += `\n${errJson.message}`;
+          } catch {}
+          alert(msg);
+          return;
+        }
         await fetchLowonganDetail();
       } catch (err) {
-        alert('Gagal memperbarui status pendaftar.');
+        console.error('[updateStatus] Error:', err);
+        alert('Gagal memperbarui status pendaftar. (Network error)');
       }
     }
 
