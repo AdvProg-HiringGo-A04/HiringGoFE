@@ -1,5 +1,4 @@
-import CONFIG from '../../../js/config.js';
-const BACKEND_URL = CONFIG.API_URL;
+const BACKEND_URL = "https://hiringgo.syauqiyasman.com";
 
 let logs = [];
 let filteredLogs = [];

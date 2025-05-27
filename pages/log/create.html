@@ -12,7 +12,7 @@
     <div class="p-4 py-12 lg:px-28 min-h-screen flex flex-col">
       <div class="mb-6">
         <div class="">
-          <a href="/pages/log/list.html" class="text-blue-900 hover:text-blue-800 mr-2">
+          <button onclick="navigateBack()" class="text-blue-900 hover:text-blue-800 mr-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5"
@@ -27,7 +27,7 @@
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-          </a>
+          </button>
         </div>
 
         <p class="text-center text-sm md:text-base text-gray-600 mt-1">
@@ -153,13 +153,12 @@
 
           <!-- Mata Kuliah Id -->
           <div class="mb-6">
-            <label for="mataKuliahId" class="block mb-2 text-sm font-medium text-gray-700">Kode Mata Kuliah <span class="text-red-500">*</span></label>
+            <!-- <label for="mataKuliahId" class="block mb-2 text-sm font-medium text-gray-700">Kode Mata Kuliah <span class="text-red-500">*</span></label> -->
             <input
+              type="hidden"
               id="mataKuliahId"
               name="mataKuliahId"
-              class="resize-none bg-gray-50 py-2 px-3 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="Masukkan id mata kuliah"
-              required
+              value="halo"
             />
             <div class="mt-1 text-sm text-red-600 hidden" id="judul-error"></div>
           </div>
@@ -189,7 +188,7 @@
 
     <!-- include biar ala ala template django -->
     <script src="/assets/js/include.js"></script>
-    <script type="module" src="/assets/js/log/create.js"></script>
+    <script src="/assets/js/log/create.js"></script>
     <script src="/assets/js/toast.js"></script>
   </body>
 </html>

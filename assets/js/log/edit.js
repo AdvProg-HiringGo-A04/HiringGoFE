@@ -1,5 +1,4 @@
-import CONFIG from '../../../js/config.js';
-const BACKEND_URL = CONFIG.API_URL;
+const BACKEND_URL = "https://hiringgo.syauqiyasman.com";
 
 document.addEventListener("DOMContentLoaded", function () {
   const token = localStorage.getItem('token');
@@ -57,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch((error) => {
       setTimeout(() => {
-        window.location.href = "/pages/log/list.html";
+        window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
       }, 3000);
 
       console.error(error);
@@ -159,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.body.appendChild(toast);
 
           setTimeout(() => {
-            window.location.href = "/pages/log/list.html";
+            window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
           }, 3000);
         })
         .catch((error) => {
@@ -168,3 +167,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+function navigateBack() {
+    const lowonganId = localStorage.getItem('selectedLowonganId');
+    if (lowonganId) {
+        window.location.href = `/pages/log/list.html?lowonganId=${lowonganId}`;
+    } else {
+        window.location.href = "/";
+    }
+}
